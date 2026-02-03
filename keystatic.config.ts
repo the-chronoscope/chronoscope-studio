@@ -6,7 +6,7 @@ export default config({
         kind: 'github',
         repo: {
           owner: 'the-chronoscope',
-          name: 'chronoscope-studio',
+          name: 'the-chronoscope',
         },
       }
     : {
