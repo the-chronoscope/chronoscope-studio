@@ -1,0 +1,21 @@
+---
+// This runs on the server. We check if the keys exist.
+export const prerender = false;
+
+const env = import.meta.env;
+const hasClientID = !!env.KEYSTATIC_GITHUB_CLIENT_ID;
+const hasClientSecret = !!env.KEYSTATIC_GITHUB_CLIENT_SECRET;
+const hasSessionSecret = !!env.KEYSTATIC_SECRET;
+
+const secretLength = env.KEYSTATIC_GITHUB_CLIENT_SECRET ? env.KEYSTATIC_GITHUB_CLIENT_SECRET.length : 0;
+---
+
+<div style="padding: 40px; font-family: monospace; background: #111; color: #0f0;">
+  <h1>System Diagnostic</h1>
+  <ul>
+    <li>GITHUB_CLIENT_ID Detected: <strong>{hasClientID ? 'YES' : 'NO'}</strong></li>
+    <li>GITHUB_CLIENT_SECRET Detected: <strong>{hasClientSecret ? 'YES' : 'NO'}</strong></li>
+    <li>SECRET Length: <strong>{secretLength} characters</strong> (Should be ~40)</li>
+    <li>KEYSTATIC_SECRET (Session) Detected: <strong>{hasSessionSecret ? 'YES' : 'NO'}</strong></li>
+  </ul>
+</div>
