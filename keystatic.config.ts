@@ -1,7 +1,7 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  // CLEAN CONFIGURATION (Relies on Vercel Environment Variables)
+  // EXPLICIT CONFIGURATION
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -9,6 +9,9 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
+        // Explicitly pass keys only if they exist (Server-side)
+        clientId: import.meta.env.KEYSTATIC_GITHUB_CLIENT_ID,
+        clientSecret: import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
