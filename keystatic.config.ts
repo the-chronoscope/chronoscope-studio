@@ -1,6 +1,10 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
+  // CLEAN CONFIGURATION
+  // We removed the manual 'clientId' and 'clientSecret' lines.
+  // Since we are now in 'output: server' mode, Keystatic will automatically
+  // find the KEYSTATIC_GITHUB_CLIENT_ID variables in the server environment.
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -8,10 +12,6 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // EXPLICIT PASS-THROUGH
-        // We use process.env to ensure backend access on Vercel
-        clientId: import.meta.env.KEYSTATIC_GITHUB_CLIENT_ID || process.env.KEYSTATIC_GITHUB_CLIENT_ID,
-        clientSecret: import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET || process.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
