@@ -1,10 +1,7 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  // CLEAN CONFIGURATION
-  // We removed the manual 'clientId' and 'clientSecret' lines.
-  // Since we are now in 'output: server' mode, Keystatic will automatically
-  // find the KEYSTATIC_GITHUB_CLIENT_ID variables in the server environment.
+  // CLEAN CONFIGURATION (Server Mode)
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
