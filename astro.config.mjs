@@ -5,7 +5,7 @@ import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel/serverless';
 
 export default defineConfig({
-  output: 'static', // Changed from 'hybrid' to 'static' for Astro 5
+  output: 'server', // Changed to 'server' to enforce dynamic runtime for Auth
   adapter: vercel(),
   integrations: [
     react(),
