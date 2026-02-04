@@ -5,7 +5,7 @@ import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel/serverless';
 
 export default defineConfig({
-  output: 'hybrid',
+  output: 'static', // Changed from 'hybrid' to 'static' for Astro 5
   adapter: vercel(),
   integrations: [
     react(),
@@ -14,7 +14,6 @@ export default defineConfig({
   ],
   vite: {
     build: {
-      // Prevents the "Large Chunk" warning from stopping the build
       chunkSizeWarningLimit: 5000
     }
   }
