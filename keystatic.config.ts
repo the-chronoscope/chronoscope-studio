@@ -1,7 +1,8 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  // CLEAN CONFIGURATION (Server Mode)
+  // RUNTIME CONFIGURATION
+  // We explicitly check process.env to ensure Vercel secrets are read at runtime.
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -9,6 +10,8 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
+        clientId: process.env.KEYSTATIC_GITHUB_CLIENT_ID,
+        clientSecret: process.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
@@ -62,3 +65,5 @@ export default config({
     }),
   },
 });
+
+
