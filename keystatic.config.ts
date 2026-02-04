@@ -26,7 +26,7 @@ export default config({
             { label: 'Past', value: 'past' },
             { label: 'Future', value: 'future' }
           ],
-          defaultValue: 'future'
+          defaultValue: 'future',
         }),
         content: fields.document({
           label: 'Content',
@@ -49,7 +49,7 @@ export default config({
             { label: 'Past', value: 'past' },
             { label: 'Future', value: 'future' }
           ],
-          defaultValue: 'future'
+          defaultValue: 'future',
         }),
         description: fields.text({ label: 'Short Description', multiline: true }),
       },
