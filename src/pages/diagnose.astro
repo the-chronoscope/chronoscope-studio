@@ -1,21 +1,35 @@
 ---
-// This runs on the server. We check if the keys exist.
 export const prerender = false;
 
 const env = import.meta.env;
-const hasClientID = !!env.KEYSTATIC_GITHUB_CLIENT_ID;
-const hasClientSecret = !!env.KEYSTATIC_GITHUB_CLIENT_SECRET;
-const hasSessionSecret = !!env.KEYSTATIC_SECRET;
+const clientID = env.KEYSTATIC_GITHUB_CLIENT_ID || "";
+const clientSecret = env.KEYSTATIC_GITHUB_CLIENT_SECRET || "";
 
-const secretLength = env.KEYSTATIC_GITHUB_CLIENT_SECRET ? env.KEYSTATIC_GITHUB_CLIENT_SECRET.length : 0;
+// Helper to mask strings
+const reveal = (str) => {
+  if (!str || str.length < 5) return "MISSING OR TOO SHORT";
+  return `${str.substring(0, 4)}...${str.substring(str.length - 4)}`;
+};
 ---
 
-<div style="padding: 40px; font-family: monospace; background: #111; color: #0f0;">
-  <h1>System Diagnostic</h1>
-  <ul>
-    <li>GITHUB_CLIENT_ID Detected: <strong>{hasClientID ? 'YES' : 'NO'}</strong></li>
-    <li>GITHUB_CLIENT_SECRET Detected: <strong>{hasClientSecret ? 'YES' : 'NO'}</strong></li>
-    <li>SECRET Length: <strong>{secretLength} characters</strong> (Should be ~40)</li>
-    <li>KEYSTATIC_SECRET (Session) Detected: <strong>{hasSessionSecret ? 'YES' : 'NO'}</strong></li>
-  </ul>
+<div style="padding: 40px; font-family: monospace; background: #111; color: #fff;">
+  <h1 style="color: #22d3ee;">Forensic Diagnostic</h1>
+  
+  <div style="margin-bottom: 20px; border: 1px solid #333; padding: 20px;">
+    <h3 style="margin-top: 0;">CLIENT ID CHECK</h3>
+    <p>Vercel sees: <strong style="color: #f59e0b; font-size: 1.2em;">{reveal(clientID)}</strong></p>
+    <p style="color: #888;">Action: Compare this with the Client ID on your GitHub App page.</p>
+  </div>
+
+  <div style="margin-bottom: 20px; border: 1px solid #333; padding: 20px;">
+    <h3 style="margin-top: 0;">CLIENT SECRET CHECK</h3>
+    <p>Vercel sees: <strong style="color: #f59e0b; font-size: 1.2em;">{reveal(clientSecret)}</strong></p>
+    <p style="color: #888;">Action: Since you cannot see the full secret in GitHub anymore, ensure the start/end looks familiar if you saved it elsewhere. If uncertain, regenerate it.</p>
+  </div>
+
+  <div style="border: 1px solid #333; padding: 20px;">
+    <h3 style="margin-top: 0;">Callback URL Check</h3>
+    <p>Your GitHub App <strong>MUST</strong> have this exact Callback URL:</p>
+    <code style="background: #222; padding: 5px; display: block; margin-top: 10px;">https://the-chronoscope.vercel.app/api/keystatic/github/oauth/callback</code>
+  </div>
 </div>
