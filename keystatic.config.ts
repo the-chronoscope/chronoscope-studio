@@ -1,7 +1,6 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  // EXPLICIT CONFIGURATION
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -9,6 +8,10 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
+        // EXPLICIT PASS-THROUGH
+        // We use process.env to ensure backend access on Vercel
+        clientId: import.meta.env.KEYSTATIC_GITHUB_CLIENT_ID || process.env.KEYSTATIC_GITHUB_CLIENT_ID,
+        clientSecret: import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET || process.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
@@ -35,6 +38,10 @@ export default config({
           formatting: true,
           dividers: true,
           links: true,
+          images: {
+            directory: 'public/images/articles',
+            publicPath: '/images/articles/',
+          },
         }),
       },
     }),
