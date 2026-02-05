@@ -1,29 +1,26 @@
 import { defineCollection, z } from 'astro:content';
 
-// 1. Define the Article Schema
-// This MUST match the fields in your Keystatic config exactly.
 const articles = defineCollection({
-  type: 'content', // v2.5+ uses 'content' for markdown
+  type: 'content',
   schema: z.object({
     title: z.string(),
-    mode: z.enum(['future', 'past', 'FUTURE', 'PAST']).optional(), // Handles case variance
-    publishDate: z.coerce.date().optional(), // Converts "2026-02-05" string to Date object
+    mode: z.enum(['future', 'past', 'FUTURE', 'PAST']).optional(),
+    publishDate: z.coerce.date().optional(),
     draft: z.boolean().optional().default(false),
     
-    // Images: Allow string paths (from Keystatic)
+    // Images: Keystatic saves these as strings
     featuredImage: z.string().optional(),
-    coverImage: z.string().optional(), // Fallback if you renamed the field
+    coverImage: z.string().optional(), 
     
     metaDescription: z.string().optional(),
     subtitle: z.string().optional(),
     
-    // Handle tags (Keystatic might save as array OR comma-string)
+    // Keystatic might save keywords as a comma-separated string or an array
     tags: z.union([z.array(z.string()), z.string()]).optional(),
     keywords: z.string().optional(),
   }),
 });
 
-// 2. Define the Video Schema
 const videos = defineCollection({
   type: 'content',
   schema: z.object({
@@ -35,7 +32,6 @@ const videos = defineCollection({
   }),
 });
 
-// 3. Export the collections
 export const collections = {
   articles,
   videos,
