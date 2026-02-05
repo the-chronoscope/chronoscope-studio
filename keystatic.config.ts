@@ -1,6 +1,7 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
+  // GENERIC CONFIG - SECRETS HANDLED IN ASTRO CONFIG
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -8,14 +9,10 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // Explicitly pass keys to ensure they are read in the server context
-        clientId: import.meta.env.KEYSTATIC_GITHUB_CLIENT_ID,
-        clientSecret: import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
       },
-  
   collections: {
     articles: collection({
       label: 'Articles',
