@@ -8,14 +8,8 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // 1. We pass the Client ID explicitly using the PUBLIC_ variable.
-        //    This ensures the browser can see it to start the login flow.
         clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
-        
-        // 2. We DO NOT pass clientSecret here.
-        //    The Keystatic backend (running on Vercel) will automatically 
-        //    look for process.env.KEYSTATIC_GITHUB_CLIENT_SECRET.
-        //    This prevents Astro from stripping the secret during the build.
+        clientSecret: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
