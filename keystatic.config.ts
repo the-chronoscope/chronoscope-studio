@@ -8,11 +8,12 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // 1. Client ID: Uses PUBLIC_ prefix so the Browser can see it.
-        clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
+        // 1. Client ID: Read from the process.env (which we populated via vite.define)
+        clientId: process.env.KEYSTATIC_GITHUB_CLIENT_ID,
         
         // 2. Client Secret: OMITTED.
-        // The server will find 'KEYSTATIC_GITHUB_CLIENT_SECRET' in the environment automatically.
+        // The Keystatic backend will automatically find 'KEYSTATIC_GITHUB_CLIENT_SECRET' 
+        // in the raw server environment.
       }
     : {
         kind: 'local',
