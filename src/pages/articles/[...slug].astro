@@ -12,14 +12,11 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await entry.render();
 
-// Robust Data Handling
+// Data Normalization
 const mode = (entry.data.mode || 'future').toLowerCase();
-// Handle image fallback (coverImage is from Keystatic, featuredImage is legacy)
+const accent = mode === 'past' ? '#f59e0b' : '#22d3ee';
 const image = entry.data.coverImage || entry.data.featuredImage;
-// Handle description fallback
-const description = entry.data.metaDescription || entry.data.subtitle || entry.data.description;
-// Dynamic accent color
-const accentColor = mode === 'past' ? '#f59e0b' : '#22d3ee';
+const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLocaleDateString() : 'TRANSMISSION';
 ---
 
 <!DOCTYPE html>
@@ -27,188 +24,96 @@ const accentColor = mode === 'past' ? '#f59e0b' : '#22d3ee';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{entry.data.title} | The Chronoscope</title>
-    <meta name="description" content={description}>
+    <title>{entry.data.title}</title>
     
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <!-- Styles: Using define:vars for dynamic accent, but hardcoding base colors for safety -->
-    <style define:vars={{ accent: accentColor }}>
-        /* Global Reset */
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --bg: #050505;
-            --text: #e5e7eb;
-            --accent-color: var(--accent);
-        }
+    <style>
+        /* CSS Reset & Typography */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         
-        html, body {
-            height: 100%;
-            width: 100%;
-            background-color: var(--bg); /* Ensure background is dark immediately */
-            color: var(--text);
-        }
-
         body { 
             font-family: 'Inter', sans-serif; 
-            padding: 0;
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        /* Typography */
-        h1, h2, h3, h4 { 
-            font-family: 'Orbitron', sans-serif; 
-            color: #fff; 
-            margin-top: 2.5rem; 
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-        
-        /* Past Mode Typography Override */
-        body.past-mode h1, 
-        body.past-mode h2, 
-        body.past-mode h3 { 
-            font-family: 'Cinzel', serif; 
-        }
-        
-        p { 
-            margin-bottom: 1.5rem; 
-            font-size: 1.125rem; 
-            color: #d1d5db; 
             line-height: 1.8;
+            overflow-x: hidden;
+            min-height: 100vh;
         }
-        
-        a { 
-            color: var(--accent-color); 
-            text-decoration: none; 
-            transition: opacity 0.2s;
-        }
-        a:hover { opacity: 0.8; }
 
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem; position: relative; z-index: 10; }
+
+        /* Headers */
+        h1, h2, h3, h4 { color: #fff; margin-top: 2.5rem; margin-bottom: 1rem; line-height: 1.2; }
+        .future-font { font-family: 'Orbitron', sans-serif; }
+        .past-font { font-family: 'Cinzel', serif; }
+        
+        h1 { font-size: clamp(2rem, 5vw, 3.5rem); text-transform: uppercase; letter-spacing: 0.02em; }
+        
+        /* Text */
+        p { margin-bottom: 1.5rem; font-size: 1.125rem; color: #d1d5db; }
         strong { color: #fff; font-weight: 600; }
+        ul, ol { margin-bottom: 1.5rem; padding-left: 2rem; color: #d1d5db; }
+        li { margin-bottom: 0.5rem; }
         
-        ul, ol { margin-bottom: 1.5rem; padding-left: 2rem; }
-        li { margin-bottom: 0.5rem; color: #d1d5db; }
+        /* Images */
+        img { max-width: 100%; height: auto; border-radius: 4px; margin: 2rem 0; border: 1px solid #333; }
+        .hero-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; margin-bottom: 3rem; }
 
-        /* Layout */
-        .article-container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 2rem 1.5rem 6rem; 
-        }
-        
-        .hero-image {
-            width: 100%; 
-            aspect-ratio: 16/9; 
-            object-fit: cover;
-            border-radius: 8px; 
-            margin-bottom: 2rem;
-            border: 1px solid #333;
-            background-color: #111; /* Placeholder color while loading */
-        }
-
-        .header { text-align: center; margin-bottom: 3rem; margin-top: 2rem; }
-        
-        .title { 
-            font-size: clamp(2rem, 5vw, 3.5rem); 
-            margin-bottom: 1rem;
-            text-transform: uppercase; 
-            letter-spacing: 0.02em;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem; 
-            color: #9ca3af; 
-            font-family: 'Inter', sans-serif; 
-            font-weight: 300;
-        }
-        
-        .meta { 
-            color: var(--accent-color); 
-            font-size: 0.85rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.15em; 
-            margin-bottom: 1.5rem; 
-            font-weight: 600;
-        }
-        
-        /* Content Styling */
-        .content { 
-            border-top: 1px solid #333; 
-            padding-top: 3rem; 
-        }
-        
-        .content blockquote { 
-            border-left: 4px solid var(--accent-color); 
-            padding-left: 1.5rem; 
-            margin: 2rem 0; 
-            font-style: italic; 
-            color: #fff;
-            background: rgba(255,255,255,0.03);
-            padding: 1.5rem;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .content img { 
-            max-width: 100%; 
-            height: auto; 
-            border-radius: 4px; 
-            margin: 2rem 0; 
-            border: 1px solid #333;
-        }
+        /* Links */
+        a { color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: 0.2s; }
+        a:hover { color: #fff; text-decoration-color: #fff; }
 
         /* Nav */
         .nav-back { 
-            display: inline-block; 
-            margin-bottom: 3rem; 
-            color: #9ca3af; 
-            font-size: 0.85rem;
-            text-transform: uppercase; 
-            letter-spacing: 0.1em;
+            display: inline-block; margin-bottom: 3rem; color: #888; 
+            text-decoration: none; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em;
         }
-        .nav-back:hover { color: var(--accent-color); }
-        
-        .footer {
-            margin-top: 5rem; 
-            padding-top: 2rem; 
-            border-top: 1px solid #222; 
-            text-align: center; 
-            color: #555; 
-            font-size: 0.8rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.2em;
+        .nav-back:hover { color: #fff; }
+
+        /* Meta */
+        .meta { 
+            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em; 
+            margin-bottom: 1rem; font-weight: 600; display: block;
         }
     </style>
 </head>
-<body class={`${mode}-mode`}>
-    
-    <div class="article-container">
-        <a href="/" class="nav-back">← Return to Observatory</a>
+
+<!-- FORCE BACKGROUND COLOR INLINE TO PREVENT WHITE FLASH -->
+<body style={`background-color: #050505; color: #e5e7eb;`}>
+
+    <div class="container">
+        <!-- Navigation -->
+        <a href="/" class="nav-back" style={`color: ${accent}`}>← Return to Observatory</a>
         
-        <header class="header">
-            <div class="meta">
-                {entry.data.publishDate ? new Date(entry.data.publishDate).toLocaleDateString() : 'TRANSMISSION'} // {mode} TIMELINE
-            </div>
-            <h1 class="title">{entry.data.title}</h1>
-            {entry.data.subtitle && <p class="subtitle">{entry.data.subtitle}</p>}
+        <!-- Header -->
+        <header style="text-align: center; margin-bottom: 3rem;">
+            <span class="meta" style={`color: ${accent}`}>
+                {dateStr} // {mode.toUpperCase()}
+            </span>
+            <h1 class={mode === 'past' ? 'past-font' : 'future-font'}>
+                {entry.data.title}
+            </h1>
+            {entry.data.subtitle && (
+                <p style="font-size: 1.25rem; color: #9ca3af; font-weight: 300;">
+                    {entry.data.subtitle}
+                </p>
+            )}
         </header>
 
-        {image && <img src={image} class="hero-image" alt={entry.data.title} />}
+        <!-- Featured Image -->
+        {image && <img src={image} class="hero-img" alt={entry.data.title} />}
 
-        <div class="content">
+        <!-- Article Content -->
+        <div class="article-content" style="border-top: 1px solid #333; padding-top: 3rem;">
             <Content />
         </div>
-        
-        <footer class="footer">
+
+        <!-- Debugging: Only shows if content is missing -->
+        <div style="display: none;">
+            Debug: Mode={mode}, Image={image}
+        </div>
+
+        <footer style="margin-top: 6rem; padding-top: 2rem; border-top: 1px solid #222; text-align: center; color: #444; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em;">
             End Transmission
         </footer>
     </div>
