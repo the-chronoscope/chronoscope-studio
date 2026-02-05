@@ -5,10 +5,9 @@ import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  // 1. WE MUST DEFINE THE SITE URL
-  // This ensures authentication redirects use the correct domain (https)
+  // CRITICAL: Forces the correct URL for OAuth handshakes
   site: 'https://chronoscope-studio.vercel.app',
-
+  
   output: 'server',
   adapter: vercel(),
   integrations: [
