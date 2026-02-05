@@ -20,7 +20,7 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: #050505;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,38 +29,53 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <style>
+    <style is:global define:vars={{ accent }}>
         /* CSS Reset & Typography */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         
+        :root {
+            --bg: #050505;
+            --text: #e5e7eb;
+            --accent-color: var(--accent);
+        }
+
+        html {
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+        }
+        
         body { 
-            font-family: 'Inter', sans-serif; 
             line-height: 1.8;
             overflow-x: hidden;
             min-height: 100vh;
+            color: var(--text);
+            background-color: var(--bg);
         }
 
         .container { max-width: 800px; margin: 0 auto; padding: 2rem; position: relative; z-index: 10; }
 
-        /* Headers */
+        /* Headers - targeting global for markdown content */
         h1, h2, h3, h4 { color: #fff; margin-top: 2.5rem; margin-bottom: 1rem; line-height: 1.2; }
+        
+        /* Font classes for the template elements */
         .future-font { font-family: 'Orbitron', sans-serif; }
         .past-font { font-family: 'Cinzel', serif; }
         
         h1 { font-size: clamp(2rem, 5vw, 3.5rem); text-transform: uppercase; letter-spacing: 0.02em; }
         
-        /* Text */
+        /* Text inside markdown */
         p { margin-bottom: 1.5rem; font-size: 1.125rem; color: #d1d5db; }
         strong { color: #fff; font-weight: 600; }
         ul, ol { margin-bottom: 1.5rem; padding-left: 2rem; color: #d1d5db; }
         li { margin-bottom: 0.5rem; }
+        blockquote { border-left: 4px solid var(--accent-color); padding-left: 1rem; margin: 1.5rem 0; color: #9ca3af; font-style: italic; }
         
         /* Images */
         img { max-width: 100%; height: auto; border-radius: 4px; margin: 2rem 0; border: 1px solid #333; }
         .hero-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; margin-bottom: 3rem; }
 
         /* Links */
-        a { color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: 0.2s; }
+        a { color: var(--accent-color); text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: 0.2s; }
         a:hover { color: #fff; text-decoration-color: #fff; }
 
         /* Nav */
@@ -74,20 +89,20 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
         .meta { 
             font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em; 
             margin-bottom: 1rem; font-weight: 600; display: block;
+            color: var(--accent-color);
         }
     </style>
 </head>
 
-<!-- FORCE BACKGROUND COLOR INLINE TO PREVENT WHITE FLASH -->
-<body style={`background-color: #050505; color: #e5e7eb;`}>
+<body class={mode === 'past' ? 'past-mode' : 'future-mode'}>
 
     <div class="container">
         <!-- Navigation -->
-        <a href="/" class="nav-back" style={`color: ${accent}`}>← Return to Observatory</a>
+        <a href="/" class="nav-back">← Return to Observatory</a>
         
         <!-- Header -->
         <header style="text-align: center; margin-bottom: 3rem;">
-            <span class="meta" style={`color: ${accent}`}>
+            <span class="meta">
                 {dateStr} // {mode.toUpperCase()}
             </span>
             <h1 class={mode === 'past' ? 'past-font' : 'future-font'}>
@@ -104,13 +119,8 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
         {image && <img src={image} class="hero-img" alt={entry.data.title} />}
 
         <!-- Article Content -->
-        <div class="article-content" style="border-top: 1px solid #333; padding-top: 3rem;">
+        <div class="article-content">
             <Content />
-        </div>
-
-        <!-- Debugging: Only shows if content is missing -->
-        <div style="display: none;">
-            Debug: Mode={mode}, Image={image}
         </div>
 
         <footer style="margin-top: 6rem; padding-top: 2rem; border-top: 1px solid #222; text-align: center; color: #444; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em;">
