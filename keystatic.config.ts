@@ -1,13 +1,5 @@
 import { config, fields, collection } from '@keystatic/core';
 
-// Helper to safely access process.env without crashing the browser
-const getEnv = (key: string) => {
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env[key];
-  }
-  return undefined;
-};
-
 export default config({
   storage: import.meta.env.PROD
     ? {
@@ -16,10 +8,9 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // EXPLICIT RUNTIME LOOKUP
-        // We force Keystatic to read the raw Vercel environment
-        clientId: getEnv('KEYSTATIC_GITHUB_CLIENT_ID'),
-        clientSecret: getEnv('KEYSTATIC_GITHUB_CLIENT_SECRET'),
+        // Explicitly pass keys to ensure they are read in the server context
+        clientId: import.meta.env.KEYSTATIC_GITHUB_CLIENT_ID,
+        clientSecret: import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
@@ -73,5 +64,3 @@ export default config({
     }),
   },
 });
-
-
