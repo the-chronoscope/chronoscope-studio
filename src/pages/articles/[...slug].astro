@@ -20,7 +20,7 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: #050505;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,14 +33,16 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
         /* CSS Reset & Typography */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         
-        html, body {
-            background-color: #050505;
-            color: #e5e7eb;
-            font-family: 'Inter', sans-serif;
+        html {
+            background-color: #050505 !important;
             min-height: 100vh;
         }
-        
-        body { 
+
+        body {
+            background-color: #050505 !important;
+            color: #e5e7eb !important;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
             line-height: 1.8;
             overflow-x: hidden;
         }
@@ -65,7 +67,7 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
         
         /* Images */
         img { max-width: 100%; height: auto; border-radius: 4px; margin: 2rem 0; border: 1px solid #333; }
-        .hero-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; margin-bottom: 3rem; }
+        .hero-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; margin-bottom: 3rem; background-color: #111; }
 
         /* Links */
         a { color: var(--accent-color); text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: 0.2s; }
