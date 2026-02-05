@@ -24,6 +24,9 @@ export default config({
         subtitle: fields.text({ label: 'Subtitle / Blurb', multiline: true }),
         seoKeywords: fields.text({ label: 'SEO Keywords', description: 'Hidden from UI' }),
         
+        // Re-adding this field to fix validation error for existing articles
+        metaDescription: fields.text({ label: 'Meta Description (Legacy)', multiline: true }),
+        
         mode: fields.select({
           label: 'Mode',
           options: [
