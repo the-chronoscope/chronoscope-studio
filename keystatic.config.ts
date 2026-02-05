@@ -4,6 +4,9 @@ export default config({
   storage: {
     kind: 'cloud',
   },
+  cloud: {
+    project: 'the-chronoscope/chronoscope-studio',
+  },
   
   collections: {
     articles: collection({
