@@ -8,12 +8,10 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // 1. Client ID: Read from the process.env (which we populated via vite.define)
+        // EXPLICIT PASSING via process.env
+        // This ensures the Server-Side API route finds the keys at runtime.
         clientId: process.env.KEYSTATIC_GITHUB_CLIENT_ID,
-        
-        // 2. Client Secret: OMITTED.
-        // The Keystatic backend will automatically find 'KEYSTATIC_GITHUB_CLIENT_SECRET' 
-        // in the raw server environment.
+        clientSecret: process.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
