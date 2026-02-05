@@ -1,27 +1,16 @@
 ---
 import { getCollection, getEntry } from 'astro:content';
 
-// --- SERVER SIDE LOGIC ---
-// In 'server' mode, we do NOT use getStaticPaths.
-// Instead, we read the 'slug' from the URL and fetch the specific article.
-
 const { slug } = Astro.params;
 
-if (!slug) {
-  return Astro.redirect('/404');
-}
+if (!slug) { return Astro.redirect('/404'); }
 
-// Fetch the specific entry by slug
 const entry = await getEntry('articles', slug);
 
-// If no article found, 404
-if (!entry) {
-  return Astro.redirect('/404');
-}
+if (!entry) { return Astro.redirect('/404'); }
 
 const { Content } = await entry.render();
 
-// Data Normalization
 const mode = (entry.data.mode || 'future').toLowerCase();
 const accent = mode === 'past' ? '#f59e0b' : '#22d3ee';
 const image = entry.data.coverImage || entry.data.featuredImage;
@@ -34,20 +23,15 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{entry.data.title}</title>
+    <meta name="description" content={entry.data.subtitle || entry.data.seoKeywords || "The Chronoscope Archive"}>
+    <meta name="keywords" content={entry.data.seoKeywords}>
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style is:global>
-        /* CSS Reset & Typography */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         
-        html {
-            background-color: #050505 !important;
-            min-height: 100vh;
-        }
-
-        body {
+        html, body {
             background-color: #050505 !important;
             color: #e5e7eb !important;
             font-family: 'Inter', sans-serif;
@@ -56,56 +40,81 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
             overflow-x: hidden;
         }
 
+        /* --- BACKGROUND FX (Copied from Index) --- */
+        .scanline-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 50;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 50%);
+            background-size: 100% 4px;
+            opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
+        }
+        .future-mode .scanline-overlay { opacity: 0.4; }
+        
+        .paper-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
+            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+            opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
+        }
+        .past-mode .paper-overlay { opacity: 0.2; }
+        
+        .grid-bg {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image: 
+                linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0; transition: opacity 0.7s;
+        }
+        .future-mode .grid-bg { opacity: 1; }
+
         .container { max-width: 800px; margin: 0 auto; padding: 2rem; position: relative; z-index: 10; }
 
-        /* Headers - targeting global for markdown content */
+        /* Typography */
         h1, h2, h3, h4 { color: #fff; margin-top: 2.5rem; margin-bottom: 1rem; line-height: 1.2; }
-        
-        /* Font classes for the template elements */
         .future-font { font-family: 'Orbitron', sans-serif; }
         .past-font { font-family: 'Cinzel', serif; }
         
         h1 { font-size: clamp(2rem, 5vw, 3.5rem); text-transform: uppercase; letter-spacing: 0.02em; }
         
-        /* Text inside markdown */
         p { margin-bottom: 1.5rem; font-size: 1.125rem; color: #d1d5db; }
         strong { color: #fff; font-weight: 600; }
         ul, ol { margin-bottom: 1.5rem; padding-left: 2rem; color: #d1d5db; }
         li { margin-bottom: 0.5rem; }
         blockquote { border-left: 4px solid var(--accent-color); padding-left: 1rem; margin: 1.5rem 0; color: #9ca3af; font-style: italic; }
         
-        /* Images */
         img { max-width: 100%; height: auto; border-radius: 4px; margin: 2rem 0; border: 1px solid #333; }
         .hero-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; margin-bottom: 3rem; background-color: #111; }
 
-        /* Links */
         a { color: var(--accent-color); text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: 0.2s; }
         a:hover { color: #fff; text-decoration-color: #fff; }
 
-        /* Nav */
         .nav-back { 
             display: inline-block; margin-bottom: 3rem; color: #888; 
             text-decoration: none; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em;
         }
         .nav-back:hover { color: #fff; }
 
-        /* Meta */
         .meta { 
             font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em; 
             margin-bottom: 1rem; font-weight: 600; display: block;
             color: var(--accent-color);
         }
+        
+        /* Past Mode Specific Background */
+        body.past-mode { background-color: #080603 !important; }
     </style>
 </head>
 
-<!-- INLINE STYLES ARE THE MOST ROBUST WAY TO PREVENT WHITE FLASH -->
-<body style={`background-color: #050505; color: #e5e7eb; --accent-color: ${accent};`}>
+<body class={mode === 'past' ? 'past-mode' : 'future-mode'} style={`--accent-color: ${accent};`}>
+
+    <!-- FX LAYERS -->
+    <canvas id="starfield" style={`position: fixed; inset:0; z-index: 0; opacity: ${mode === 'future' ? 1 : 0}; pointer-events: none;`}></canvas>
+    <div class="scanline-overlay"></div>
+    <div class="paper-overlay"></div>
+    <div class="grid-bg"></div>
 
     <div class="container">
-        <!-- Navigation -->
         <a href="/" class="nav-back" style={`color: ${accent}`}>← Return to Observatory</a>
         
-        <!-- Header -->
         <header style="text-align: center; margin-bottom: 3rem;">
             <span class="meta">
                 {dateStr} // {mode.toUpperCase()}
@@ -120,10 +129,8 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
             )}
         </header>
 
-        <!-- Featured Image -->
         {image && <img src={image} class="hero-img" alt={entry.data.title} />}
 
-        <!-- Article Content -->
         <div class="article-content">
             <Content />
         </div>
@@ -132,6 +139,51 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
             End Transmission
         </footer>
     </div>
+
+    <!-- STARFIELD SCRIPT -->
+    <script>
+        const canvas = document.getElementById('starfield');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let stars = [];
+
+            function initStars() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                stars = Array.from({length: 120}, () => ({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 1.5,
+                    speed: Math.random() * 0.15 + 0.05,
+                    alpha: Math.random()
+                }));
+            }
+
+            function animate() {
+                // If opacity is 0 (hidden), skip render
+                if (getComputedStyle(canvas).opacity === '0') {
+                    requestAnimationFrame(animate);
+                    return;
+                }
+                
+                ctx.clearRect(0, 0, width, height);
+                stars.forEach(s => {
+                    ctx.fillStyle = `rgba(34, 211, 238, ${s.alpha})`; 
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+                    ctx.fill();
+                    s.y -= s.speed;
+                    if(s.y < 0) s.y = height;
+                });
+                requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('resize', initStars);
+            initStars();
+            animate();
+        }
+    </script>
 
 </body>
 </html>
