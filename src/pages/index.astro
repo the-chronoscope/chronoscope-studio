@@ -17,7 +17,7 @@ const articles = allArticles
       title: article.data.title || 'Untitled Record',
       // Map Keystatic image to frontend
       featuredImage: article.data.coverImage || article.data.featuredImage || null,
-      metaDescription: article.data.subtitle || article.data.description || 'No briefing available.',
+      metaDescription: article.data.metaDescription || article.data.subtitle || article.data.description || 'No briefing available.',
       tags: typeof article.data.keywords === 'string' 
         ? article.data.keywords.split(',').map(s => s.trim()).filter(s => s.length > 0)
         : (article.data.tags || []),
