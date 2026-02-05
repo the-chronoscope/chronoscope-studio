@@ -20,7 +20,7 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
 ---
 
 <!DOCTYPE html>
-<html lang="en" style="background-color: #050505;">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,27 +29,20 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <style is:global define:vars={{ accent }}>
+    <style is:global>
         /* CSS Reset & Typography */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         
-        :root {
-            --bg: #050505;
-            --text: #e5e7eb;
-            --accent-color: var(--accent);
-        }
-
-        html {
-            background-color: var(--bg);
+        html, body {
+            background-color: #050505;
+            color: #e5e7eb;
             font-family: 'Inter', sans-serif;
+            min-height: 100vh;
         }
         
         body { 
             line-height: 1.8;
             overflow-x: hidden;
-            min-height: 100vh;
-            color: var(--text);
-            background-color: var(--bg);
         }
 
         .container { max-width: 800px; margin: 0 auto; padding: 2rem; position: relative; z-index: 10; }
@@ -94,11 +87,12 @@ const dateStr = entry.data.publishDate ? new Date(entry.data.publishDate).toLoca
     </style>
 </head>
 
-<body class={mode === 'past' ? 'past-mode' : 'future-mode'}>
+<!-- INLINE STYLES ARE THE MOST ROBUST WAY TO PREVENT WHITE FLASH -->
+<body style={`background-color: #050505; color: #e5e7eb; --accent-color: ${accent};`}>
 
     <div class="container">
         <!-- Navigation -->
-        <a href="/" class="nav-back">← Return to Observatory</a>
+        <a href="/" class="nav-back" style={`color: ${accent}`}>← Return to Observatory</a>
         
         <!-- Header -->
         <header style="text-align: center; margin-bottom: 3rem;">
