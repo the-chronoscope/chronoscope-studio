@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 
-// 1. Generate Static Paths for all articles
 export async function getStaticPaths() {
   const articles = await getCollection('articles');
   return articles.map(entry => ({
@@ -10,14 +9,9 @@ export async function getStaticPaths() {
   }));
 }
 
-// 2. Get the specific article data
 const { entry } = Astro.props;
 const { Content } = await entry.render();
-
-// 3. Data normalization
-// Default to 'future' if mode is missing
 const mode = (entry.data.mode || 'future').toLowerCase();
-// Handle image fallback (coverImage is from Keystatic, featuredImage is legacy)
 const image = entry.data.coverImage || entry.data.featuredImage;
 ---
 
@@ -26,99 +20,23 @@ const image = entry.data.coverImage || entry.data.featuredImage;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{entry.data.title} | The Chronoscope</title>
-    <meta name="description" content={entry.data.metaDescription || entry.data.subtitle}>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-
-    <style define:vars={{ modeColor: mode === 'past' ? '#f59e0b' : '#22d3ee' }}>
-        /* Dynamic Theme based on Article Mode */
-        :root {
-            --bg-color: #050505;
-            --text-color: #e5e7eb;
-            --accent: var(--modeColor);
-        }
-        
-        body { 
-            background: var(--bg-color); 
-            color: var(--text-color); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        /* Typography */
-        h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; color: #fff; margin-top: 2rem; }
-        .past-mode h1, .past-mode h2 { font-family: 'Cinzel', serif; }
-        
-        p { line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.1rem; color: #ccc; }
-        li { margin-bottom: 0.5rem; line-height: 1.6; }
-        strong { color: white; }
-
-        /* Layout */
-        .article-container { max-width: 800px; margin: 0 auto; padding: 2rem; }
-        
-        .hero-image {
-            width: 100%; aspect-ratio: 16/9; object-fit: cover;
-            border-radius: 8px; margin-bottom: 2rem;
-            border: 1px solid #333;
-        }
-
-        .header { text-align: center; margin-bottom: 3rem; margin-top: 2rem; }
-        .title { 
-            font-size: clamp(2rem, 5vw, 3.5rem); 
-            line-height: 1.1; margin-bottom: 1rem;
-            text-transform: uppercase; letter-spacing: 0.05em;
-        }
-        
-        .meta { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
-        
-        /* Content Styling */
-        .content { border-top: 1px solid #222; padding-top: 2rem; }
-        .content a { color: var(--accent); }
-        .content blockquote { 
-            border-left: 4px solid var(--accent); 
-            padding-left: 1.5rem; margin: 2rem 0; 
-            font-style: italic; color: #fff;
-            background: rgba(255,255,255,0.05);
-            padding: 1.5rem;
-            border-radius: 0 8px 8px 0;
-        }
-        .content img { max-width: 100%; height: auto; border-radius: 4px; margin: 2rem 0; }
-
-        /* Nav */
-        .nav-back { 
-            display: inline-block; margin-bottom: 2rem; 
-            color: #666; text-decoration: none; font-size: 0.9rem;
-            text-transform: uppercase; letter-spacing: 0.1em;
-        }
-        .nav-back:hover { color: var(--accent); }
+    <title>{entry.data.title}</title>
+    <style>
+        :root { --bg: #050505; --text: #e5e7eb; --accent: #22d3ee; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 2rem; }
+        .past-mode { --accent: #f59e0b; }
+        h1 { color: #fff; margin-top: 0; }
+        a { color: var(--accent); }
+        img { max-width: 100%; border-radius: 8px; margin: 2rem 0; border: 1px solid #333; }
+        .content { max-width: 800px; margin: 0 auto; line-height: 1.8; }
     </style>
 </head>
 <body class={`${mode}-mode`}>
-    
-    <div class="article-container">
-        <a href="/" class="nav-back">← Return to Observatory</a>
-        
-        <header class="header">
-            <div class="meta">
-                {entry.data.publishDate ? new Date(entry.data.publishDate).toLocaleDateString() : 'TRANSMISSION'} // {mode} TIMELINE
-            </div>
-            <h1 class="title">{entry.data.title}</h1>
-            {entry.data.subtitle && <p style="font-size: 1.2rem; color: #888; font-family: 'Inter', sans-serif;">{entry.data.subtitle}</p>}
-        </header>
-
-        {image && <img src={image} class="hero-image" alt={entry.data.title} />}
-
-        <div class="content">
-            <Content />
-        </div>
-        
-        <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #222; text-align: center; color: #444; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em;">
-            END TRANSMISSION
-        </footer>
+    <div class="content">
+        <a href="/" style="text-decoration: none; font-size: 0.9rem;">← RETURN</a>
+        <h1 style="margin-top: 1rem; font-size: 2.5rem;">{entry.data.title}</h1>
+        {image && <img src={image} />}
+        <Content />
     </div>
-
 </body>
 </html>
