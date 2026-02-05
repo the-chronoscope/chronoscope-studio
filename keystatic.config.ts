@@ -1,7 +1,7 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  // Generic Storage Config (Secrets handled by Astro server runtime)
+  // FIX: Using conditional keys for browser safety
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -9,6 +9,8 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
+        // Only pass keys if we are on the server side to avoid browser crashes
+        clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
       }
     : {
         kind: 'local',
@@ -23,18 +25,15 @@ export default config({
       schema: {
         title: fields.slug({ name: { label: 'Title' } }),
         
-        // 1. Subtitle / Blurb (Visible on Cards & Header)
-        subtitle: fields.text({ 
-          label: 'Subtitle / Card Blurb',
-          multiline: true,
-          description: 'The short summary shown on the homepage card and article header.'
-        }),
-
+        // Split Schema for Better UX
+        subtitle: fields.text({ label: 'Subtitle / Blurb', multiline: true }),
+        seoKeywords: fields.text({ label: 'SEO Keywords', description: 'Hidden from UI' }),
+        
         mode: fields.select({
-          label: 'Timeline Mode',
+          label: 'Mode',
           options: [
-            { label: 'Past (Amber)', value: 'past' },
-            { label: 'Future (Cyan)', value: 'future' }
+            { label: 'Past', value: 'past' },
+            { label: 'Future', value: 'future' }
           ],
           defaultValue: 'future',
         }),
@@ -47,20 +46,7 @@ export default config({
           publicPath: '/images/articles/',
         }),
 
-        // 2. SEO Keywords (Hidden metadata)
-        seoKeywords: fields.text({ 
-          label: 'SEO Keywords',
-          description: 'Comma-separated keywords for Google (not shown on UI).' 
-        }),
-
-        // 3. Tags (Expanded list)
-        tags: fields.array(
-          fields.text({ label: 'Tag' }),
-          {
-            label: 'Tags',
-            itemLabel: props => props.value || 'Tag',
-          }
-        ),
+        tags: fields.array(fields.text({ label: 'Tag' }), { label: 'Tags' }),
 
         content: fields.document({
           label: 'Content',
@@ -74,9 +60,8 @@ export default config({
         }),
       },
     }),
-    
     videos: collection({
-      label: 'Videos (YouTube)',
+      label: 'Videos',
       slugField: 'title',
       path: 'src/content/videos/*',
       schema: {
@@ -90,7 +75,7 @@ export default config({
           ],
           defaultValue: 'future',
         }),
-        description: fields.text({ label: 'Short Description', multiline: true }),
+        description: fields.text({ label: 'Description', multiline: true }),
       },
     }),
   },
