@@ -1,4 +1,5 @@
 ---
+// src/pages/index.astro
 import { getCollection } from 'astro:content';
 
 const allArticles = await getCollection('articles').catch(() => []);
@@ -13,11 +14,10 @@ const articles = allArticles
       ...article.data,
       title: article.data.title || 'Untitled Record',
       featuredImage: article.data.coverImage || article.data.featuredImage || null,
-      // Use subtitle as the primary description for the card
       description: article.data.subtitle || article.data.metaDescription || 'No briefing available.',
-      tags: Array.isArray(article.data.tags) 
-        ? article.data.tags 
-        : (typeof article.data.tags === 'string' ? article.data.tags.split(',') : []),
+      tags: typeof article.data.keywords === 'string' 
+        ? article.data.keywords.split(',').map(s => s.trim()).filter(s => s.length > 0)
+        : (article.data.tags || []),
       publishDate: article.data.date || article.data.publishDate || new Date().toISOString(),
       mode: article.data.mode || 'future'
     }
@@ -52,7 +52,7 @@ function getYouTubeId(url) {
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -88,9 +88,9 @@ function getYouTubeId(url) {
             background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
             opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
         }
-        /* Past mode background texture */
-        .past-mode .paper-overlay { opacity: 0.15; }
-        .past-mode { background-color: #0c0a08; } /* Very dark brown/black */
+        /* UPDATED: Increased visibility for Past mode */
+        .past-mode .paper-overlay { opacity: 0.4; }
+        .past-mode { background-color: #1a1510; } 
 
         .grid-bg {
             position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -105,13 +105,13 @@ function getYouTubeId(url) {
         /* --- NAV --- */
         nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(12px);
+            background: rgba(5, 5, 5, 0.85); backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         
         .nav-content {
             display: flex; align-items: center; 
-            height: 70px; padding: 0 2rem; gap: 2rem;
+            height: 64px; padding: 0 2rem; gap: 2rem;
             max-width: 1600px; margin: 0 auto;
         }
         
@@ -128,58 +128,76 @@ function getYouTubeId(url) {
         .future-mode .logo-subtitle { color: var(--c-cyan); }
         .past-mode .logo-subtitle { color: var(--c-amber); }
 
-        /* --- IMPROVED TOGGLE --- */
+        /* --- TOGGLE (WIDER & LABELED) --- */
         .mode-toggle {
             position: relative; display: flex; align-items: center; justify-content: space-between;
-            height: 26px; width: 60px; border-radius: 99px;
-            background: #111; border: 1px solid #333;
+            height: 28px; width: 140px; border-radius: 99px;
+            background: #000; border: 1px solid #333;
             cursor: pointer; overflow: hidden; transition: all 0.3s;
             padding: 2px;
         }
         .mode-toggle:hover { border-color: #555; }
+        .future-mode .mode-toggle { border-color: var(--c-cyan); }
+        .past-mode .mode-toggle { border-color: var(--c-amber); }
         
         .toggle-thumb {
-            width: 20px; height: 20px; border-radius: 50%;
-            background: #444; position: absolute; top: 2px; left: 2px;
+            width: 50%; height: 100%; border-radius: 99px;
+            background: #333; position: absolute; top: 0; left: 0;
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            z-index: 1; opacity: 0.2;
         }
-        
-        .future-mode .toggle-thumb { 
-            transform: translateX(34px); 
-            background: var(--c-cyan);
-            box-shadow: 0 0 10px var(--c-cyan-glow);
-        }
-        .past-mode .toggle-thumb { 
-            transform: translateX(0px); 
-            background: var(--c-amber);
-            box-shadow: 0 0 10px var(--c-amber-glow);
-        }
+        .future-mode .toggle-thumb { transform: translateX(100%); background: var(--c-cyan); }
+        .past-mode .toggle-thumb { transform: translateX(0%); background: var(--c-amber); }
 
-        /* --- NAV LINKS (Left Aligned) --- */
-        .nav-links { display: flex; gap: 1.5rem; margin-right: auto; /* Pushes any right-content away */ }
+        .toggle-labels {
+            display: flex; width: 100%; justify-content: space-between; padding: 0 12px;
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+            z-index: 2; pointer-events: none;
+        }
+        .toggle-labels span { transition: color 0.3s; }
+        
+        .future-mode .toggle-labels span:last-child { color: var(--c-cyan); text-shadow: 0 0 5px var(--c-cyan-glow); }
+        .future-mode .toggle-labels span:first-child { color: #444; }
+        
+        .past-mode .toggle-labels span:first-child { color: var(--c-amber); text-shadow: 0 0 5px var(--c-amber-glow); }
+        .past-mode .toggle-labels span:last-child { color: #444; }
+
+        /* --- NAV LINKS --- */
+        .nav-links { display: flex; gap: 1.5rem; margin-right: auto; align-items: center; }
         .nav-link {
             color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 600;
             text-transform: uppercase; letter-spacing: 0.1em; transition: color 0.3s;
-            position: relative;
         }
         .nav-link:hover { color: #fff; }
-        .future-mode .nav-link:hover { text-shadow: 0 0 8px var(--c-cyan-glow); }
-        .past-mode .nav-link:hover { text-shadow: 0 0 8px var(--c-amber-glow); }
+
+        /* Search */
+        .search-btn {
+            background: none; border: none; color: #888; cursor: pointer; padding: 0.5rem;
+            transition: color 0.3s; display: flex; align-items: center;
+        }
+        .search-btn:hover { color: #fff; }
+        .search-icon { width: 18px; height: 18px; fill: currentColor; }
 
         @media (max-width: 768px) {
-            .nav-content { padding: 0 1rem; }
-            .logo-text { display: none; } /* Hide text on mobile to save space */
+            .nav-content { padding: 0 1rem; gap: 1rem; }
+            .logo-text { display: none; }
             .nav-links { gap: 1rem; }
+            .mode-toggle { width: 100px; }
+            .toggle-labels { font-size: 0.55rem; padding: 0 8px; }
         }
 
-        /* Hero */
+        /* --- HERO (COMPACT) --- */
         .hero {
-            min-height: 70vh; display: flex; align-items: center; justify-content: center;
-            text-align: center; position: relative; padding-top: 80px; z-index: 10;
+            /* UPDATED: Reduced height to show cards immediately */
+            min-height: 45vh; 
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; position: relative; 
+            padding-top: 80px; 
+            padding-bottom: 2rem;
+            z-index: 10;
         }
         .hero-title {
-            font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; line-height: 0.9; margin-bottom: 1.5rem;
+            font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 900; line-height: 0.9; margin-bottom: 1rem;
             background-clip: text; -webkit-background-clip: text; color: transparent; transition: all 1s;
         }
         .future-mode .hero-title {
@@ -190,18 +208,21 @@ function getYouTubeId(url) {
             font-family: 'Cinzel', serif; background-image: linear-gradient(to bottom, #fff, #ccc);
             text-shadow: 0 0 40px var(--c-amber-glow);
         }
+        .hero-tag {
+            font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.7;
+        }
 
-        /* Card Grid */
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 10; }
-        .grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); }
+        /* --- CARDS --- */
+        .container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 10; }
+        .grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
         
         .card {
             background: rgba(10, 10, 10, 0.6); border: 1px solid #222; border-radius: 4px;
             backdrop-filter: blur(10px);
             overflow: hidden; transition: all 0.4s; position: relative; display: flex; flex-direction: column;
-            text-decoration: none; color: inherit;
+            text-decoration: none; color: inherit; height: 100%;
         }
-        .card:hover { transform: translateY(-5px); background: rgba(20, 20, 20, 0.8); }
+        .card:hover { transform: translateY(-4px); background: rgba(20, 20, 20, 0.8); }
         .future-mode .card:hover { border-color: var(--c-cyan); box-shadow: 0 10px 30px -10px var(--c-cyan-glow); }
         .past-mode .card:hover { border-color: var(--c-amber); box-shadow: 0 10px 30px -10px var(--c-amber-glow); }
 
@@ -212,21 +233,24 @@ function getYouTubeId(url) {
         }
         .card:hover .card-image { filter: grayscale(0%) contrast(1); }
 
-        .card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
-        .card-title { font-size: 1.25rem; margin-bottom: 0.5rem; color: #fff; line-height: 1.3; }
+        .card-content { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff; line-height: 1.3; }
         .future-mode .card-title { font-family: 'Orbitron', sans-serif; letter-spacing: 0.02em; }
         .past-mode .card-title { font-family: 'Cinzel', serif; font-weight: 700; }
 
         .tag {
-            font-size: 0.65rem; padding: 3px 6px; border: 1px solid #333;
+            font-size: 0.6rem; padding: 2px 6px; border: 1px solid #333;
             border-radius: 2px; text-transform: uppercase; margin-right: 6px; display: inline-block;
             letter-spacing: 0.05em; color: #888; margin-bottom: 0.5rem;
         }
         
-        .section-header { padding: 4rem 0 2rem; border-top: 1px solid #222; margin-top: 4rem; display: flex; align-items: baseline; gap: 1rem; }
-        .section-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: #fff; }
+        .section-header { 
+            padding: 1rem 0 1.5rem; border-top: 1px solid #222; 
+            display: flex; align-items: baseline; gap: 1rem; 
+        }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #fff; }
         .past-mode .section-title { font-family: 'Cinzel', serif; }
-        .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; }
+        .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; }
     </style>
 </head>
 
@@ -263,6 +287,10 @@ function getYouTubeId(url) {
 
             <div class="mode-toggle" id="mode-toggle-btn">
                 <div class="toggle-thumb"></div>
+                <div class="toggle-labels">
+                    <span>Past</span>
+                    <span>Future</span>
+                </div>
             </div>
 
             <div class="nav-links">
@@ -270,6 +298,12 @@ function getYouTubeId(url) {
                 <a href="#videos" class="nav-link">Transmissions</a>
                 <a href="/keystatic" class="nav-link" style="color: var(--c-cyan);">Login</a>
             </div>
+
+            <button class="search-btn" title="Search Database">
+                <svg class="search-icon" viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+            </button>
         </div>
     </nav>
 
@@ -277,7 +311,7 @@ function getYouTubeId(url) {
         <section class="hero">
             <div class="container">
                 <h1 class="hero-title">ORIGINS &<br>FUTURES</h1>
-                <p style="opacity: 0.7; letter-spacing: 0.2em; text-transform: uppercase;">A Digital Observatory</p>
+                <p class="hero-tag">A Digital Observatory</p>
             </div>
         </section>
 
@@ -300,7 +334,7 @@ function getYouTubeId(url) {
                             <div style="margin-bottom: 0.5rem;">
                                 {item.data.tags.slice(0, 3).map(t => <span class="tag">{t}</span>)}
                             </div>
-                            <p style="color:#888; font-size: 0.9rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            <p style="color:#888; font-size: 0.85rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
                                 {item.data.description}
                             </p>
                         </div>
@@ -330,7 +364,7 @@ function getYouTubeId(url) {
                         </div>
                         <div class="card-content">
                             <h3 class="card-title">{item.data.title}</h3>
-                            <p style="color:#888; font-size: 0.9rem;">{item.data.description}</p>
+                            <p style="color:#888; font-size: 0.85rem;">{item.data.description}</p>
                         </div>
                     </a>
                 )) : (
@@ -388,7 +422,6 @@ function getYouTubeId(url) {
             });
         });
 
-        // Starfield logic
         const ctx = canvas.getContext('2d');
         let width, height;
         let stars = [];
