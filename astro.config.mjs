@@ -8,11 +8,10 @@ import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   site: 'https://chronoscope-studio.vercel.app',
   
-  // CRITICAL: Must be 'hybrid' for Keystatic GitHub mode to work
-  // This allows static pages + dynamic API routes for OAuth
-  output: 'hybrid',
+  // UPDATED: Use 'server' mode for Keystatic (hybrid was removed in latest Astro 5)
+  output: 'server',
   
-  // Use serverless adapter (not edge) to ensure process.env is available
+  // Use serverless adapter to ensure process.env is available
   adapter: vercel({
     edgeMiddleware: false,
   }),
@@ -27,7 +26,5 @@ export default defineConfig({
     build: {
       chunkSizeWarningLimit: 5000,
     },
-    // DO NOT add 'define' block for environment variables
-    // Vercel injects them at runtime automatically
   },
 });
