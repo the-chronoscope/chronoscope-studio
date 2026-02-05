@@ -1,12 +1,18 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  storage: {
-    kind: 'cloud',
-  },
-  cloud: {
-    project: 'alpha/chronoscope-studio',
-  },
+  // Generic Storage Config (Secrets handled by Astro server runtime)
+  storage: import.meta.env.PROD
+    ? {
+        kind: 'github',
+        repo: {
+          owner: 'the-chronoscope',
+          name: 'chronoscope-studio',
+        },
+      }
+    : {
+        kind: 'local',
+      },
   
   collections: {
     articles: collection({
@@ -15,49 +21,47 @@ export default config({
       path: 'src/content/articles/*',
       format: { contentField: 'content' },
       schema: {
-        title: fields.slug({ 
-          name: { label: 'Title' } 
+        title: fields.slug({ name: { label: 'Title' } }),
+        
+        // 1. Subtitle / Blurb (Visible on Cards & Header)
+        subtitle: fields.text({ 
+          label: 'Subtitle / Card Blurb',
+          multiline: true,
+          description: 'The short summary shown on the homepage card and article header.'
         }),
+
         mode: fields.select({
-          label: 'Mode',
+          label: 'Timeline Mode',
           options: [
-            { label: 'Past', value: 'past' },
-            { label: 'Future', value: 'future' }
+            { label: 'Past (Amber)', value: 'past' },
+            { label: 'Future (Cyan)', value: 'future' }
           ],
           defaultValue: 'future',
         }),
-        publishDate: fields.date({
-          label: 'Publication Date',
-          defaultValue: { kind: 'today' },
-        }),
-        draft: fields.checkbox({
-          label: 'Draft',
-          defaultValue: false,
-          description: 'Unpublished articles won\'t appear on the site',
-        }),
-        featuredImage: fields.image({
-          label: 'Featured Image',
+        
+        publishDate: fields.date({ label: 'Publish Date' }),
+        
+        coverImage: fields.image({
+          label: 'Cover Image',
           directory: 'public/images/articles',
           publicPath: '/images/articles/',
         }),
-        metaDescription: fields.text({
-          label: 'Meta Description (SEO)',
-          multiline: true,
-          validation: { 
-            length: { min: 50, max: 160 } 
-          },
-          description: '50-160 characters for search engines',
+
+        // 2. SEO Keywords (Hidden metadata)
+        seoKeywords: fields.text({ 
+          label: 'SEO Keywords',
+          description: 'Comma-separated keywords for Google (not shown on UI).' 
         }),
-        tags: fields.multiselect({
-          label: 'Tags',
-          options: [
-            { label: 'Space', value: 'space' },
-            { label: 'Ethics', value: 'ethics' },
-            { label: 'Technology', value: 'technology' },
-            { label: 'History', value: 'history' },
-            { label: 'Deep Time', value: 'deep-time' },
-          ],
-        }),
+
+        // 3. Tags (Expanded list)
+        tags: fields.array(
+          fields.text({ label: 'Tag' }),
+          {
+            label: 'Tags',
+            itemLabel: props => props.value || 'Tag',
+          }
+        ),
+
         content: fields.document({
           label: 'Content',
           formatting: true,
@@ -76,13 +80,8 @@ export default config({
       slugField: 'title',
       path: 'src/content/videos/*',
       schema: {
-        title: fields.slug({ 
-          name: { label: 'Title' } 
-        }),
-        youtubeUrl: fields.url({ 
-          label: 'YouTube Link',
-          validation: { isRequired: true },
-        }),
+        title: fields.slug({ name: { label: 'Title' } }),
+        youtubeUrl: fields.url({ label: 'YouTube Link' }),
         mode: fields.select({
           label: 'Mode',
           options: [
@@ -91,23 +90,7 @@ export default config({
           ],
           defaultValue: 'future',
         }),
-        publishDate: fields.date({
-          label: 'Publication Date',
-          defaultValue: { kind: 'today' },
-        }),
-        description: fields.text({ 
-          label: 'Short Description', 
-          multiline: true,
-          validation: { 
-            length: { max: 300 } 
-          },
-        }),
-        thumbnail: fields.image({
-          label: 'Custom Thumbnail (optional)',
-          directory: 'public/images/videos',
-          publicPath: '/images/videos/',
-          description: 'Leave empty to use YouTube thumbnail',
-        }),
+        description: fields.text({ label: 'Short Description', multiline: true }),
       },
     }),
   },
