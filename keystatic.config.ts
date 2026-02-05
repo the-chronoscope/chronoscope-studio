@@ -1,20 +1,17 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  // FIX: Using conditional keys for browser safety
-  storage: import.meta.env.PROD
-    ? {
-        kind: 'github',
-        repo: {
-          owner: 'the-chronoscope',
-          name: 'chronoscope-studio',
-        },
-        // Only pass keys if we are on the server side to avoid browser crashes
-        clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
-      }
-    : {
-        kind: 'local',
-      },
+  storage: {
+    kind: 'github',
+    repo: {
+      owner: 'the-chronoscope',
+      name: 'alpha/chronoscope-studio',
+    },
+    // DO NOT specify clientId or clientSecret here
+    // Keystatic will automatically look for:
+    // - KEYSTATIC_GITHUB_CLIENT_ID (will be read at runtime)
+    // - KEYSTATIC_GITHUB_CLIENT_SECRET (will be read at runtime)
+  },
   
   collections: {
     articles: collection({
