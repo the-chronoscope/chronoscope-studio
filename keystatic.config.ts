@@ -8,10 +8,9 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // EXPLICIT PASSING via process.env
-        // This ensures the Server-Side API route finds the keys at runtime.
-        clientId: process.env.KEYSTATIC_GITHUB_CLIENT_ID,
-        clientSecret: process.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
+        // CRITICAL FIX: Remove clientId and clientSecret
+        // Keystatic will automatically read from process.env at runtime
+        // DO NOT specify them here - it causes bundling issues in Astro 5
       }
     : {
         kind: 'local',
@@ -24,7 +23,9 @@ export default config({
       path: 'src/content/articles/*',
       format: { contentField: 'content' },
       schema: {
-        title: fields.slug({ name: { label: 'Title' } }),
+        title: fields.slug({ 
+          name: { label: 'Title' } 
+        }),
         mode: fields.select({
           label: 'Mode',
           options: [
@@ -32,6 +33,38 @@ export default config({
             { label: 'Future', value: 'future' }
           ],
           defaultValue: 'future',
+        }),
+        publishDate: fields.date({
+          label: 'Publication Date',
+          defaultValue: { kind: 'today' },
+        }),
+        draft: fields.checkbox({
+          label: 'Draft',
+          defaultValue: false,
+          description: 'Unpublished articles won\'t appear on the site',
+        }),
+        featuredImage: fields.image({
+          label: 'Featured Image',
+          directory: 'public/images/articles',
+          publicPath: '/images/articles/',
+        }),
+        metaDescription: fields.text({
+          label: 'Meta Description (SEO)',
+          multiline: true,
+          validation: { 
+            length: { min: 50, max: 160 } 
+          },
+          description: '50-160 characters for search engines',
+        }),
+        tags: fields.multiselect({
+          label: 'Tags',
+          options: [
+            { label: 'Space', value: 'space' },
+            { label: 'Ethics', value: 'ethics' },
+            { label: 'Technology', value: 'technology' },
+            { label: 'History', value: 'history' },
+            { label: 'Deep Time', value: 'deep-time' },
+          ],
         }),
         content: fields.document({
           label: 'Content',
@@ -45,13 +78,19 @@ export default config({
         }),
       },
     }),
+    
     videos: collection({
       label: 'Videos (YouTube)',
       slugField: 'title',
       path: 'src/content/videos/*',
       schema: {
-        title: fields.slug({ name: { label: 'Title' } }),
-        youtubeUrl: fields.url({ label: 'YouTube Link' }),
+        title: fields.slug({ 
+          name: { label: 'Title' } 
+        }),
+        youtubeUrl: fields.url({ 
+          label: 'YouTube Link',
+          validation: { isRequired: true },
+        }),
         mode: fields.select({
           label: 'Mode',
           options: [
@@ -60,7 +99,23 @@ export default config({
           ],
           defaultValue: 'future',
         }),
-        description: fields.text({ label: 'Short Description', multiline: true }),
+        publishDate: fields.date({
+          label: 'Publication Date',
+          defaultValue: { kind: 'today' },
+        }),
+        description: fields.text({ 
+          label: 'Short Description', 
+          multiline: true,
+          validation: { 
+            length: { max: 300 } 
+          },
+        }),
+        thumbnail: fields.image({
+          label: 'Custom Thumbnail (optional)',
+          directory: 'public/images/videos',
+          publicPath: '/images/videos/',
+          description: 'Leave empty to use YouTube thumbnail',
+        }),
       },
     }),
   },
