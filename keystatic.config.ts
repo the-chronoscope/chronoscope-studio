@@ -1,7 +1,6 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  // GENERIC CONFIG - NO SECRETS HERE
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -9,6 +8,11 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
+        // 1. Client ID: Uses PUBLIC_ prefix so the Browser can see it.
+        clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
+        
+        // 2. Client Secret: OMITTED.
+        // The server will find 'KEYSTATIC_GITHUB_CLIENT_SECRET' in the environment automatically.
       }
     : {
         kind: 'local',
