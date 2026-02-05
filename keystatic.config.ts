@@ -8,6 +8,11 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
+        // 1. Client ID: Uses PUBLIC_ prefix so the Browser can see it.
+        clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
+        
+        // 2. Client Secret: Uses private variable. Only visible on the Server.
+        clientSecret: import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
