@@ -2,9 +2,11 @@
 // src/pages/index.astro
 import { getCollection } from 'astro:content';
 
+// Safely fetch collections - prevents crashes if folders are empty
 const allArticles = await getCollection('articles').catch(() => []);
 const allVideos = await getCollection('videos').catch(() => []);
 
+// Process Articles
 const articles = allArticles
   .filter(article => article.data.draft !== true)
   .map(article => ({
@@ -24,6 +26,7 @@ const articles = allArticles
   }))
   .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
 
+// Process Videos
 const videos = allVideos
   .map(video => ({
     ...video,
@@ -68,7 +71,7 @@ function getYouTubeId(url) {
         
         html {
             scroll-behavior: smooth;
-            scroll-padding-top: 80px; /* Offsets the fixed header */
+            scroll-padding-top: 80px; /* Offset for fixed header */
         }
 
         body {
@@ -76,250 +79,50 @@ function getYouTubeId(url) {
             color: var(--c-text);
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            min-height: 100vh;
             transition: background-color 0.5s ease;
         }
         
-        /* --- BACKGROUND FX --- */
-        .scanline-overlay {
-            position: fixed; inset: 0; pointer-events: none; z-index: 50;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 50%);
-            background-size: 100% 4px;
-            opacity: 0; pointer-events: none; transition: opacity 0.7s;
-        }
-        .future-mode .scanline-overlay { opacity: 0.3; }
+        /* --- VISUAL LAYERS (STRICT Z-INDEX) --- */
         
-        /* PAST MODE TEXTURES */
-        .paper-overlay {
-            position: fixed; inset: 0; pointer-events: none; z-index: 1;
-            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
-            opacity: 0; transition: opacity 0.7s;
+        /* Layer 0: Stars */
+        #starfield {
+            position: fixed; inset: 0; z-index: 0; 
+            opacity: 0; transition: opacity 1s; pointer-events: none;
         }
 
-        .past-mode { 
-            /* Darker, deeper background */
-            background-color: #0c0a08; 
-            /* Subtle pattern behind the paper texture */
-            background-image: radial-gradient(#1a1510 1px, transparent 1px);
-            background-size: 20px 20px;
-        } 
-
-        .past-mode .paper-overlay { 
-            opacity: 0.8; 
-            mix-blend-mode: soft-light;
-            filter: contrast(1.5) sepia(0.4);
-        }
-
-        /* FUTURE MODE GRID */
+        /* Layer 1: Grid (Future) */
         .grid-bg {
-            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
             background-image: 
                 linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
             background-size: 50px 50px;
             opacity: 0; transition: opacity 0.7s;
         }
-        /* UPDATED: Reduced visibility from 1 to 0.2 */
         .future-mode .grid-bg { opacity: 0.2; }
-        
-        /* --- NAV --- */
-        nav {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(5, 5, 5, 0.85); backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .nav-content {
-            display: flex; align-items: center; 
-            height: 64px; padding: 0 2rem; gap: 2rem;
-            max-width: 1600px; margin: 0 auto;
-            justify-content: flex-start;
-            position: relative; /* For search positioning */
-        }
-        
-        .logo-section { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; flex-shrink: 0; }
-        .logo-icon { width: 32px; height: 32px; transition: transform 0.7s; }
-        .future-mode .logo-icon { transform: rotate(0deg); }
-        .past-mode .logo-icon { transform: rotate(180deg); }
-        
-        .logo-text h1 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.1em; margin: 0; line-height: 1; }
-        .future-mode .logo-text h1 { font-family: 'Orbitron', sans-serif; }
-        .past-mode .logo-text h1 { font-family: 'Cinzel', serif; }
 
-        .logo-subtitle { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; margin: 0; opacity: 0.8; }
-        .future-mode .logo-subtitle { color: var(--c-cyan); }
-        .past-mode .logo-subtitle { color: var(--c-amber); }
-
-        /* --- TOGGLE --- */
-        .mode-toggle {
-            position: relative; display: flex; align-items: center; justify-content: space-between;
-            height: 28px; width: 140px; border-radius: 99px;
-            background: #000; border: 1px solid #333;
-            cursor: pointer; overflow: hidden; transition: all 0.3s;
-            padding: 2px;
-            flex-shrink: 0;
+        /* Layer 2: Paper & Texture (Past) */
+        .past-mode { 
+            background-color: #0c0a08; 
+            background-image: radial-gradient(#1a1510 1px, transparent 1px);
+            background-size: 20px 20px;
+        } 
+        .paper-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 2;
+            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+            opacity: 0; transition: opacity 0.7s;
         }
-        .mode-toggle:hover { border-color: #555; }
-        .future-mode .mode-toggle { border-color: var(--c-cyan); }
-        .past-mode .mode-toggle { border-color: var(--c-amber); }
-        
-        .toggle-thumb {
-            width: 50%; height: 100%; border-radius: 99px;
-            background: #333; position: absolute; top: 0; left: 0;
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s;
-            z-index: 1; opacity: 0.2;
-        }
-        .future-mode .toggle-thumb { transform: translateX(100%); background: var(--c-cyan); }
-        .past-mode .toggle-thumb { transform: translateX(0%); background: var(--c-amber); }
-
-        .toggle-labels {
-            display: flex; width: 100%; justify-content: space-between; padding: 0 16px;
-            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-            z-index: 2; pointer-events: none; position: absolute;
-        }
-        .toggle-labels span { transition: color 0.3s; }
-        
-        .future-mode .toggle-labels span:last-child { color: var(--c-cyan); text-shadow: 0 0 5px var(--c-cyan-glow); }
-        .future-mode .toggle-labels span:first-child { color: #444; }
-        
-        .past-mode .toggle-labels span:first-child { color: var(--c-amber); text-shadow: 0 0 5px var(--c-amber-glow); }
-        .past-mode .toggle-labels span:last-child { color: #444; }
-
-        /* --- NAV LINKS --- */
-        .nav-links { display: flex; gap: 1.5rem; align-items: center; margin-left: 1rem; }
-        .nav-link {
-            color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 0.1em; transition: color 0.3s;
-        }
-        .nav-link:hover { color: #fff; }
-
-        /* Search Styles */
-        .search-wrapper { margin-left: auto; position: relative; display: flex; align-items: center; }
-        .search-btn {
-            background: none; border: none; color: #888; cursor: pointer; padding: 0.5rem;
-            transition: color 0.3s; display: flex; align-items: center;
-        }
-        .search-btn:hover { color: #fff; }
-        .search-icon { width: 18px; height: 18px; fill: currentColor; }
-
-        .search-input-container {
-            position: absolute; right: 0; top: 100%; 
-            margin-top: 10px;
-            background: rgba(10,10,10,0.95);
-            border: 1px solid #333;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-            width: 250px;
-            backdrop-filter: blur(10px);
-        }
-        .search-input-container.active { display: block; }
-        
-        .search-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #444;
-            color: #fff;
-            padding: 5px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-        }
-        .search-input:focus { outline: none; border-color: var(--c-cyan); }
-        .past-mode .search-input:focus { border-color: var(--c-amber); }
-
-
-        @media (max-width: 768px) {
-            .nav-content { padding: 0 1rem; gap: 1rem; }
-            .logo-text { display: none; }
-            .nav-links { gap: 1rem; margin-left: 0; }
-            .mode-toggle { width: 100px; }
-            .toggle-labels { font-size: 0.55rem; padding: 0 8px; }
+        .past-mode .paper-overlay { 
+            opacity: 0.8; 
+            mix-blend-mode: soft-light;
+            filter: contrast(1.5) sepia(0.4);
         }
 
-        /* --- HERO (COMPACT) --- */
-        .hero {
-            min-height: 40vh; 
-            display: flex; align-items: center; justify-content: center;
-            text-align: center; position: relative; 
-            padding-top: 80px; 
-            padding-bottom: 2rem;
-            z-index: 10;
+        /* Layer 3: Scanlines (Moved DOWN from 50 to 3) */
+        .scanline-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 3;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 50%);
+            background-size: 100% 4px;
+            opacity: 0; transition: opacity 0.7s;
         }
-        .hero-title {
-            font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 900; line-height: 0.9; margin-bottom: 1rem;
-            background-clip: text; -webkit-background-clip: text; color: transparent; transition: all 1s;
-        }
-        .future-mode .hero-title {
-            font-family: 'Orbitron', sans-serif; background-image: linear-gradient(to bottom, #fff, #888);
-            text-shadow: 0 0 40px var(--c-cyan-glow);
-        }
-        .past-mode .hero-title {
-            font-family: 'Cinzel', serif; background-image: linear-gradient(to bottom, #fff, #ccc);
-            text-shadow: 0 0 40px var(--c-amber-glow);
-        }
-        .hero-tag {
-            font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.7;
-        }
-
-        /* --- CARDS --- */
-        .container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 10; }
-        .grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-        
-        .card {
-            background: rgba(10, 10, 10, 0.6); border: 1px solid #222; border-radius: 4px;
-            backdrop-filter: blur(10px);
-            overflow: hidden; transition: all 0.4s; position: relative; display: flex; flex-direction: column;
-            text-decoration: none; color: inherit; height: 100%;
-        }
-        .card:hover { transform: translateY(-4px); background: rgba(20, 20, 20, 0.8); }
-        .future-mode .card:hover { border-color: var(--c-cyan); box-shadow: 0 10px 30px -10px var(--c-cyan-glow); }
-        .past-mode .card:hover { border-color: var(--c-amber); box-shadow: 0 10px 30px -10px var(--c-amber-glow); }
-
-        .card-image-wrapper { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #111; }
-        .card-image { 
-            width: 100%; height: 100%; object-fit: cover; 
-            filter: grayscale(40%) contrast(1.1); transition: filter 0.4s; 
-        }
-        .card:hover .card-image { filter: grayscale(0%) contrast(1); }
-
-        .card-content { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
-        .card-title { font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff; line-height: 1.3; }
-        .future-mode .card-title { font-family: 'Orbitron', sans-serif; letter-spacing: 0.02em; }
-        .past-mode .card-title { font-family: 'Cinzel', serif; font-weight: 700; }
-
-        .tag {
-            font-size: 0.6rem; padding: 2px 6px; border: 1px solid #333;
-            border-radius: 2px; text-transform: uppercase; margin-right: 6px; display: inline-block;
-            letter-spacing: 0.05em; color: #888; margin-bottom: 0.5rem;
-        }
-        
-        .section-header { 
-            padding: 0 0 1.5rem; border-top: 1px solid #222; margin-top: 1rem;
-            display: flex; align-items: baseline; gap: 1rem; 
-        }
-        .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #fff; }
-        .past-mode .section-title { font-family: 'Cinzel', serif; }
-        .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; }
-    </style>
-</head>
-
-<body class="future-mode">
-    <script is:inline>
-        const saved = localStorage.getItem('chrono_mode') || 'future';
-        document.body.classList.remove('future-mode');
-        document.body.classList.add(saved + '-mode');
-    </script>
-
-    <canvas id="starfield" style="position: fixed; inset:0; z-index: 0; opacity: 0; transition: opacity 1s; pointer-events: none;"></canvas>
-    <div class="scanline-overlay"></div>
-    <div class="paper-overlay"></div>
-    <div class="grid-bg"></div>
-
-    <nav>
-        <div class="nav-content">
-            <div class="logo-section" id="mode-trigger">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 100 100">
-                        <defs>
-                            <linearGradient id="g-fut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#0e7490"/></linearGradient>
-                            <linearGradient id="g-pst" x1="
