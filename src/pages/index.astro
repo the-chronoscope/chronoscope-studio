@@ -322,7 +322,7 @@ const videos = allVideos
     <!-- Navigation -->
     <nav>
         <div class="nav-content">
-            <div class="logo-section" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+            <div class="logo-section" id="logo-section">
                 <!-- Logo Icon (Yin-Yang style) -->
                 <div class="logo-icon">
                     <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
@@ -350,7 +350,7 @@ const videos = allVideos
                 </div>
                 
                 <!-- Mode Toggle -->
-                <button class="mode-toggle" id="mode-toggle" onclick="toggleMode()">
+                <button class="mode-toggle" id="mode-toggle">
                     <span class="mode-slider"></span>
                     <span class="mode-label past">Past</span>
                     <span class="mode-label future">Future</span>
@@ -358,9 +358,9 @@ const videos = allVideos
             </div>
             
             <div class="nav-links">
-                <a class="nav-link" onclick="scrollToSection('articles')">Articles</a>
-                <a class="nav-link" onclick="scrollToSection('videos')">Visuals</a>
-                <a class="nav-link" onclick="scrollToSection('about')">About</a>
+                <a class="nav-link" data-scroll="articles">Articles</a>
+                <a class="nav-link" data-scroll="videos">Visuals</a>
+                <a class="nav-link" data-scroll="about">About</a>
                 <a class="nav-link" href="/keystatic" target="_blank">Admin</a>
             </div>
         </div>
@@ -495,7 +495,9 @@ const videos = allVideos
             
             // Update subtitle
             const subtitle = document.getElementById('logo-subtitle');
-            subtitle.textContent = currentMode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
+            if (subtitle) {
+                subtitle.textContent = currentMode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
+            }
             
             // Filter content
             filterContent();
@@ -523,8 +525,35 @@ const videos = allVideos
             }
         }
         
-        // Initialize
-        filterContent();
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mode toggle button
+            const modeToggle = document.getElementById('mode-toggle');
+            if (modeToggle) {
+                modeToggle.addEventListener('click', toggleMode);
+            }
+            
+            // Logo click to scroll to top
+            const logoSection = document.getElementById('logo-section');
+            if (logoSection) {
+                logoSection.addEventListener('click', function() {
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                });
+            }
+            
+            // Nav links
+            const navLinks = document.querySelectorAll('.nav-link[data-scroll]');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = this.getAttribute('data-scroll');
+                    scrollToSection(target);
+                });
+            });
+            
+            // Initialize content filter
+            filterContent();
+        });
     </script>
 </body>
 </html>
