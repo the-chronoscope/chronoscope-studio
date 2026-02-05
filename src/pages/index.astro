@@ -2,23 +2,15 @@
 // src/pages/index.astro
 import { getCollection } from 'astro:content';
 
-// Fetch articles and videos from Keystatic
 const allArticles = await getCollection('articles');
 const allVideos = await getCollection('videos');
 
-// Filter by published status and sort by date
 const articles = allArticles
   .filter(article => !article.data.draft)
   .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
 
 const videos = allVideos
   .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
-
-// Separate by mode
-const futureArticles = articles.filter(a => a.data.mode === 'future');
-const pastArticles = articles.filter(a => a.data.mode === 'past');
-const futureVideos = videos.filter(v => v.data.mode === 'future');
-const pastVideos = videos.filter(v => v.data.mode === 'past');
 ---
 
 <!DOCTYPE html>
@@ -27,186 +19,185 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- SEO -->
     <title>The Chronoscope | Origins & Futures</title>
     <meta name="description" content="A digital observatory exploring the deep past and far future. Documentaries, analysis, and debates on human origins and destiny.">
     <meta name="keywords" content="history, future, technology, archeology, space, ai, civilization, ancient, mystery, moon, mars">
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="The Chronoscope | Origins & Futures">
-    <meta property="og:description" content="Exploring the jagged edges of human knowledge. From the Bronze Age collapse to the sociology of generation ships.">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --void: #030303;
-            --panel: #0a0a0a;
-            --cyan: #22d3ee;
-            --amber: #f59e0b;
-        }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         html { scroll-behavior: smooth; }
         
         body {
-            background-color: var(--void);
+            background: #030303;
             color: #e5e7eb;
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
+            overflow-x: hidden;
             transition: background-color 0.7s ease;
         }
         
-        body.future-mode {
-            cursor: crosshair;
-            background-color: #030507;
-        }
+        body.future-mode { cursor: crosshair; background-color: #030507; }
+        body.past-mode { cursor: context-menu; background-color: #050403; }
         
-        body.past-mode {
-            cursor: context-menu;
-            background-color: #050403;
-        }
-        
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #030303; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
         
-        /* Typography */
-        h1, h2, h3 { font-family: 'Orbitron', sans-serif; font-weight: 900; }
-        .title-cinzel { font-family: 'Cinzel', serif; }
-        
-        /* Layout */
-        .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
-        
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            background: rgba(3, 3, 3, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #1f1f1f;
-        }
-        
-        .nav-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 64px;
-        }
-        
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 900;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-        
-        .mode-toggle {
-            display: flex;
-            gap: 0.5rem;
-            background: #0f0f0f;
-            padding: 0.25rem;
-            border-radius: 9999px;
-            border: 1px solid #333;
-        }
-        
-        .mode-btn {
-            padding: 0.5rem 1.5rem;
-            border-radius: 9999px;
-            border: none;
-            background: transparent;
-            color: #666;
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .mode-btn.active.future {
-            background: var(--cyan);
-            color: #000;
-        }
-        
-        .mode-btn.active.past {
-            background: var(--amber);
-            color: #000;
-        }
-        
-        /* Hero */
-        .hero {
-            margin-top: 64px;
-            padding: 8rem 0 4rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-title {
-            font-size: clamp(2.5rem, 8vw, 6rem);
-            font-weight: 900;
-            margin-bottom: 1rem;
-            letter-spacing: -0.02em;
-        }
-        
-        .hero-subtitle {
-            font-size: clamp(1rem, 2vw, 1.5rem);
-            color: #888;
-            margin-bottom: 3rem;
-            font-weight: 300;
-        }
-        
-        /* Scanline effect for future mode */
+        /* Background Effects */
         .scanline-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 50;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.2) 50%,
-                rgba(0,0,0,0.2)
-            );
+            position: fixed; inset: 0; pointer-events: none; z-index: 50;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
             background-size: 100% 4px;
             animation: scanline 10s linear infinite;
-            opacity: 0.3;
-            mix-blend-mode: overlay;
+            opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
         }
+        .future-mode .scanline-overlay { opacity: 0.3; }
         
         @keyframes scanline {
             0% { transform: translateY(-100%); }
             100% { transform: translateY(100%); }
         }
         
-        /* Paper texture for past mode */
         .paper-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 40;
+            position: fixed; inset: 0; pointer-events: none; z-index: 40;
             background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
-            mix-blend-mode: soft-light;
-            opacity: 0.2;
+            mix-blend-mode: soft-light; opacity: 0; transition: opacity 0.7s;
+        }
+        .past-mode .paper-overlay { opacity: 0.2; }
+        
+        /* Grid Background */
+        .grid-bg {
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
+            opacity: 0; transition: opacity 0.7s;
+        }
+        .future-mode .grid-bg { opacity: 0.1; }
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(34, 211, 238, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
         }
         
-        /* Section Headers */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+        
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(3, 3, 3, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid #1f1f1f; transition: border-color 0.7s;
+        }
+        .future-mode nav { border-bottom-color: rgba(34, 211, 238, 0.2); }
+        .past-mode nav { border-bottom-color: rgba(245, 158, 11, 0.2); }
+        
+        .nav-content {
+            display: flex; align-items: center; justify-content: space-between;
+            height: 80px; padding: 0 2rem;
+        }
+        
+        .logo-section {
+            display: flex; align-items: center; gap: 1rem; cursor: pointer;
+        }
+        
+        .logo-icon {
+            width: 40px; height: 40px; position: relative;
+            transition: transform 0.7s;
+        }
+        .future-mode .logo-icon { transform: rotate(180deg); }
+        
+        .logo-text h1 {
+            font-family: 'Orbitron', sans-serif; font-size: 1.25rem;
+            font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+        }
+        .past-mode .logo-text h1 { font-family: 'Cinzel', serif; }
+        
+        .logo-subtitle {
+            font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+            opacity: 0.7; transition: color 0.7s;
+        }
+        .future-mode .logo-subtitle { color: #22d3ee; }
+        .past-mode .logo-subtitle { color: #f59e0b; }
+        
+        /* Mode Toggle */
+        .mode-toggle {
+            position: relative; display: inline-flex; align-items: center;
+            height: 24px; width: 128px; border-radius: 9999px;
+            border: 1px solid; transition: all 0.3s; margin-left: 1.5rem;
+        }
+        .future-mode .mode-toggle {
+            border-color: rgba(34, 211, 238, 0.5);
+            background: rgba(34, 211, 238, 0.1);
+        }
+        .past-mode .mode-toggle {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .mode-slider {
+            position: absolute; width: 56px; height: 16px;
+            border-radius: 9999px; transition: all 0.3s;
+        }
+        .future-mode .mode-slider {
+            transform: translateX(64px); background: #22d3ee;
+            box-shadow: 0 0 10px #22d3ee;
+        }
+        .past-mode .mode-slider {
+            transform: translateX(4px); background: #f59e0b;
+            box-shadow: 0 0 10px #f59e0b;
+        }
+        
+        .mode-label {
+            position: absolute; font-size: 0.6rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em; z-index: 1;
+        }
+        .mode-label.past { left: 12px; }
+        .mode-label.future { right: 12px; }
+        .future-mode .mode-label.past { color: #666; }
+        .future-mode .mode-label.future { color: #000; }
+        .past-mode .mode-label.past { color: #000; }
+        .past-mode .mode-label.future { color: #666; }
+        
+        /* Nav Links */
+        .nav-links {
+            display: flex; gap: 2rem; align-items: center;
+        }
+        
+        .nav-link {
+            color: #999; text-decoration: none; font-size: 0.875rem;
+            font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em;
+            transition: color 0.3s; cursor: pointer;
+        }
+        .nav-link:hover { color: #fff; }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+        }
+        
+        /* Hero */
+        .hero {
+            margin-top: 80px; padding: 8rem 0 4rem; text-align: center;
+            position: relative; overflow: hidden;
+        }
+        
+        .hero-title {
+            font-family: 'Orbitron', sans-serif; font-weight: 900;
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            letter-spacing: -0.02em; margin-bottom: 1rem;
+        }
+        .past-mode .hero-title { font-family: 'Cinzel', serif; }
+        
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: #888; font-weight: 300; margin-bottom: 3rem;
+        }
+        
+        /* Sections */
         .section {
-            padding: 4rem 0;
-            scroll-margin-top: 80px;
+            padding: 4rem 0; scroll-margin-top: 100px;
         }
         
         .section-header {
@@ -214,45 +205,34 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
         }
         
         .section-title {
-            font-size: 2.5rem;
-            font-weight: 900;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
+            font-family: 'Orbitron', sans-serif; font-size: 2.5rem;
+            font-weight: 900; letter-spacing: 0.05em; margin-bottom: 0.5rem;
         }
+        .past-mode .section-title { font-family: 'Cinzel', serif; }
         
         .section-subtitle {
-            color: #666;
-            text-transform: uppercase;
-            font-size: 0.875rem;
-            letter-spacing: 0.1em;
-            font-weight: 600;
+            color: #666; text-transform: uppercase; font-size: 0.875rem;
+            letter-spacing: 0.1em; font-weight: 600;
         }
         
         /* Cards */
-        .grid {
-            display: grid;
-            gap: 2rem;
-        }
-        
-        .grid-2 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+        .grid { display: grid; gap: 2rem; }
+        .grid-2 { grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); }
         
         .card {
-            background: var(--panel);
-            border: 1px solid #1f1f1f;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s;
+            background: #0a0a0a; border: 1px solid #1f1f1f;
+            border-radius: 12px; overflow: hidden;
+            transition: all 0.3s; cursor: pointer;
         }
-        
         .card:hover {
-            border-color: #333;
             transform: translateY(-4px);
+            border-color: #333;
         }
+        .future-mode .card:hover { border-color: rgba(34, 211, 238, 0.5); }
+        .past-mode .card:hover { border-color: rgba(245, 158, 11, 0.5); }
         
         .card-image {
-            width: 100%;
-            aspect-ratio: 16/9;
-            object-fit: cover;
+            width: 100%; aspect-ratio: 16/9; object-fit: cover;
         }
         
         .card-content {
@@ -260,121 +240,128 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
         }
         
         .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #fff;
+            font-size: 1.25rem; font-weight: 700;
+            margin-bottom: 0.5rem; color: #fff;
         }
         
         .card-description {
-            color: #888;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            margin-bottom: 1rem;
+            color: #888; font-size: 0.875rem;
+            line-height: 1.6; margin-bottom: 1rem;
         }
         
         .card-meta {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            display: flex; gap: 0.5rem; flex-wrap: wrap;
+            margin-bottom: 1rem;
         }
         
         .tag {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            padding: 0.25rem 0.75rem; border-radius: 9999px;
+            font-size: 0.75rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em;
         }
-        
         .future-mode .tag {
             background: rgba(34, 211, 238, 0.1);
-            color: var(--cyan);
-            border: 1px solid rgba(34, 211, 238, 0.3);
+            color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.3);
         }
-        
         .past-mode .tag {
             background: rgba(245, 158, 11, 0.1);
-            color: var(--amber);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);
         }
         
         .read-more {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-decoration: none;
-            transition: all 0.3s;
+            display: inline-block; padding: 0.75rem 1.5rem;
+            border-radius: 6px; font-weight: 600; font-size: 0.875rem;
+            text-decoration: none; transition: all 0.3s; border: 1px solid;
         }
-        
         .future-mode .read-more {
             background: rgba(34, 211, 238, 0.1);
-            color: var(--cyan);
-            border: 1px solid var(--cyan);
+            color: #22d3ee; border-color: #22d3ee;
         }
-        
         .future-mode .read-more:hover {
-            background: var(--cyan);
-            color: #000;
+            background: #22d3ee; color: #000;
         }
-        
         .past-mode .read-more {
             background: rgba(245, 158, 11, 0.1);
-            color: var(--amber);
-            border: 1px solid var(--amber);
+            color: #f59e0b; border-color: #f59e0b;
+        }
+        .past-mode .read-more:hover {
+            background: #f59e0b; color: #000;
         }
         
-        .past-mode .read-more:hover {
-            background: var(--amber);
-            color: #000;
+        /* About Section */
+        .about-card {
+            background: #0a0a0a; border: 1px solid #1f1f1f;
+            border-radius: 12px; padding: 3rem;
         }
+        .about-card p {
+            font-size: 1.125rem; line-height: 1.8; margin-bottom: 1.5rem;
+        }
+        .about-card strong { color: #fff; }
         
         /* Footer */
         footer {
-            border-top: 1px solid #1f1f1f;
-            padding: 3rem 0;
-            text-align: center;
-            color: #666;
-            font-size: 0.875rem;
+            border-top: 1px solid #1f1f1f; padding: 3rem 0;
+            text-align: center; color: #666; font-size: 0.875rem;
         }
         
-        /* Empty states */
+        /* Empty State */
         .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            opacity: 0.5;
-            font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
-            border: 1px dashed #333;
-            border-radius: 12px;
+            text-align: center; padding: 4rem 2rem; opacity: 0.5;
+            font-family: 'Courier New', monospace; font-size: 0.875rem;
+            border: 1px dashed #333; border-radius: 12px;
         }
     </style>
 </head>
 
 <body class="future-mode" id="body">
-    <!-- Future mode scanline overlay -->
-    <div class="scanline-overlay" id="scanline"></div>
-    
-    <!-- Past mode paper texture -->
-    <div class="paper-overlay" id="paper" style="display: none;"></div>
+    <!-- Background Effects -->
+    <div class="scanline-overlay"></div>
+    <div class="paper-overlay"></div>
+    <div class="grid-bg"></div>
     
     <!-- Navigation -->
     <nav>
-        <div class="container">
-            <div class="nav-content">
-                <div class="logo title-cinzel">THE CHRONOSCOPE</div>
-                <div class="mode-toggle">
-                    <button class="mode-btn active future" id="future-btn">
-                        ⚡ Future
-                    </button>
-                    <button class="mode-btn past" id="past-btn">
-                        🏛️ Past
-                    </button>
+        <div class="nav-content">
+            <div class="logo-section" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <!-- Logo Icon (Yin-Yang style) -->
+                <div class="logo-icon">
+                    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                        <defs>
+                            <linearGradient id="gradFuture" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#22d3ee" />
+                                <stop offset="100%" stop-color="#0e7490" />
+                            </linearGradient>
+                            <linearGradient id="gradPast" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#fbbf24" />
+                                <stop offset="100%" stop-color="#b45309" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="46" fill="none" stroke="#333" stroke-width="1" opacity="0.3" />
+                        <path id="future-half" d="M50 4 A 46 46 0 0 1 50 96 A 23 23 0 0 1 50 50 A 23 23 0 0 0 50 4" fill="url(#gradFuture)" style="transition: all 0.7s;" />
+                        <path id="past-half" d="M50 96 A 46 46 0 0 1 50 4 A 23 23 0 0 1 50 50 A 23 23 0 0 0 50 96" fill="url(#gradPast)" style="transition: all 0.7s;" />
+                        <circle cx="50" cy="27" r="5" fill="#000" />
+                        <circle cx="50" cy="73" r="5" fill="#000" />
+                    </svg>
                 </div>
+                
+                <div class="logo-text">
+                    <h1>CHRONOSCOPE</h1>
+                    <p class="logo-subtitle" id="logo-subtitle">Forward Operating Base</p>
+                </div>
+                
+                <!-- Mode Toggle -->
+                <button class="mode-toggle" id="mode-toggle" onclick="toggleMode()">
+                    <span class="mode-slider"></span>
+                    <span class="mode-label past">Past</span>
+                    <span class="mode-label future">Future</span>
+                </button>
+            </div>
+            
+            <div class="nav-links">
+                <a class="nav-link" onclick="scrollToSection('articles')">Articles</a>
+                <a class="nav-link" onclick="scrollToSection('videos')">Visuals</a>
+                <a class="nav-link" onclick="scrollToSection('about')">About</a>
+                <a class="nav-link" href="/keystatic" target="_blank">Admin</a>
             </div>
         </div>
     </nav>
@@ -382,9 +369,7 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
     <!-- Hero -->
     <section class="hero">
         <div class="container">
-            <h1 class="hero-title">
-                <span id="hero-text">ORIGINS & FUTURES</span>
-            </h1>
+            <h1 class="hero-title">ORIGINS & FUTURES</h1>
             <p class="hero-subtitle">A Digital Observatory</p>
         </div>
     </section>
@@ -447,7 +432,7 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
                                     alt={video.data.title}
                                     class="card-image"
                                 />
-                            ) : (
+                            ) : video.data.youtubeUrl && (
                                 <img 
                                     src={`https://img.youtube.com/vi/${video.data.youtubeUrl.split('v=')[1]?.split('&')[0]}/maxresdefault.jpg`}
                                     alt={video.data.title}
@@ -464,7 +449,7 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
                         </article>
                     ))
                 ) : (
-                    <div class="empty-state">No visual records found in this timeline.</div>
+                    <div class="empty-state">No visual records found.</div>
                 )}
             </div>
         </div>
@@ -477,19 +462,17 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
                 <h2 class="section-title">Mission Control</h2>
                 <p class="section-subtitle">About</p>
             </div>
-            <div class="card">
-                <div class="card-content" style="padding: 3rem;">
-                    <p style="font-size: 1.125rem; line-height: 1.8; margin-bottom: 1.5rem;">
-                        <strong>The Chronoscope</strong> is a digital observatory exploring the deep past and far future 
-                        of human civilization. We examine the archaeological record with the same rigor we apply to 
-                        speculative futures.
-                    </p>
-                    <p style="color: #888; line-height: 1.8;">
-                        From the Bronze Age collapse to the sociology of generation ships. From Denisovan genomics 
-                        to post-human ethics. This is research-driven non-fiction for people who want to understand 
-                        the full scope of the human story.
-                    </p>
-                </div>
+            <div class="about-card">
+                <p>
+                    <strong>The Chronoscope</strong> is a digital observatory exploring the deep past and far future 
+                    of human civilization. We examine the archaeological record with the same rigor we apply to 
+                    speculative futures.
+                </p>
+                <p style="color: #888;">
+                    From the Bronze Age collapse to the sociology of generation ships. From Denisovan genomics 
+                    to post-human ethics. This is research-driven non-fiction for people who want to understand 
+                    the full scope of the human story.
+                </p>
             </div>
         </div>
     </section>
@@ -502,61 +485,46 @@ const pastVideos = videos.filter(v => v.data.mode === 'past');
     </footer>
     
     <script>
-        // Mode toggle functionality
-        const body = document.getElementById('body');
-        const futureBtn = document.getElementById('future-btn');
-        const pastBtn = document.getElementById('past-btn');
-        const scanline = document.getElementById('scanline');
-        const paper = document.getElementById('paper');
-        const heroText = document.getElementById('hero-text');
-        const articlesGrid = document.getElementById('articles-grid');
-        const videosGrid = document.getElementById('videos-grid');
-        
+        // Mode toggle
         let currentMode = 'future';
         
-        function setMode(mode) {
-            currentMode = mode;
+        function toggleMode() {
+            currentMode = currentMode === 'future' ? 'past' : 'future';
+            document.body.classList.remove('future-mode', 'past-mode');
+            document.body.classList.add(`${currentMode}-mode`);
             
-            // Update body class
-            body.classList.remove('future-mode', 'past-mode');
-            body.classList.add(`${mode}-mode`);
-            
-            // Update buttons
-            futureBtn.classList.toggle('active', mode === 'future');
-            pastBtn.classList.toggle('active', mode === 'past');
-            
-            // Toggle overlays
-            scanline.style.display = mode === 'future' ? 'block' : 'none';
-            paper.style.display = mode === 'past' ? 'block' : 'none';
-            
-            // Update hero text
-            heroText.textContent = mode === 'future' ? 'ORIGINS & FUTURES' : 'ORIGINS & FUTURES';
+            // Update subtitle
+            const subtitle = document.getElementById('logo-subtitle');
+            subtitle.textContent = currentMode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
             
             // Filter content
             filterContent();
         }
         
         function filterContent() {
-            // Filter articles
-            const articles = articlesGrid.querySelectorAll('.card');
+            const articles = document.querySelectorAll('#articles-grid .card');
+            const videos = document.querySelectorAll('#videos-grid .card');
+            
             articles.forEach(card => {
-                const cardMode = card.getAttribute('data-mode');
-                card.style.display = cardMode === currentMode ? 'block' : 'none';
+                const mode = card.getAttribute('data-mode');
+                card.style.display = mode === currentMode ? 'block' : 'none';
             });
             
-            // Filter videos
-            const videos = videosGrid.querySelectorAll('.card');
             videos.forEach(card => {
-                const cardMode = card.getAttribute('data-mode');
-                card.style.display = cardMode === currentMode ? 'block' : 'none';
+                const mode = card.getAttribute('data-mode');
+                card.style.display = mode === currentMode ? 'block' : 'none';
             });
         }
         
-        futureBtn.addEventListener('click', () => setMode('future'));
-        pastBtn.addEventListener('click', () => setMode('past'));
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
         
-        // Initialize with future mode and filter content
-        setMode('future');
+        // Initialize
+        filterContent();
     </script>
 </body>
 </html>
