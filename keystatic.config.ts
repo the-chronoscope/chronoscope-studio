@@ -5,7 +5,7 @@ export default config({
     kind: 'cloud',
   },
   cloud: {
-    project: 'the-chronoscope/chronoscope-studio',
+    project: 'alpha/chronoscope-studio',
   },
   
   collections: {
