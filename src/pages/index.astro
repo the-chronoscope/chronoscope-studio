@@ -6,26 +6,26 @@ import { getCollection } from 'astro:content';
 const allArticles = await getCollection('articles').catch(() => []);
 const allVideos = await getCollection('videos').catch(() => []);
 
-// 2. Data Transformation (Fixing schema mismatches)
+// 2. Data Transformation
 const articles = allArticles
-  .filter(article => !article.data.draft)
+  .filter(article => article.data.draft !== true)
   .map(article => ({
     ...article,
     slug: article.slug,
     data: {
       ...article.data,
       title: article.data.title || 'Untitled Record',
+      // Map Keystatic image to frontend
       featuredImage: article.data.coverImage || article.data.featuredImage || null,
       metaDescription: article.data.subtitle || article.data.description || 'No briefing available.',
       tags: typeof article.data.keywords === 'string' 
-        ? article.data.keywords.split(',').map(s => s.trim()) 
+        ? article.data.keywords.split(',').map(s => s.trim()).filter(s => s.length > 0)
         : (article.data.tags || []),
       publishDate: article.data.date || article.data.publishDate || new Date().toISOString(),
       mode: article.data.mode || 'future'
     }
   }))
-  // Fix: Safe sorting with fallback to 0 to prevent build crashes
-  .sort((a, b) => new Date(b.data.publishDate || 0).getTime() - new Date(a.data.publishDate || 0).getTime());
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
 
 const videos = allVideos
   .map(video => ({
@@ -38,6 +38,7 @@ const videos = allVideos
   }))
   .sort((a, b) => new Date(b.data.publishDate || 0).getTime() - new Date(a.data.publishDate || 0).getTime());
 
+// Helper: YouTube ID
 function getYouTubeId(url) {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -51,7 +52,6 @@ function getYouTubeId(url) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>The Chronoscope | Origins & Futures</title>
     <meta name="description" content="A digital observatory exploring the deep past and far future.">
     
@@ -61,7 +61,7 @@ function getYouTubeId(url) {
     
     <style>
         :root {
-            --c-void: #030303;
+            --c-void: #050505;
             --c-text: #e5e7eb;
             --c-cyan: #22d3ee;
             --c-cyan-dim: rgba(34, 211, 238, 0.1);
@@ -81,16 +81,10 @@ function getYouTubeId(url) {
             transition: background-color 0.7s ease;
         }
         
-        /* --- MODES --- */
+        body.past-mode { background-color: #080603; }
         body.future-mode { background-color: #030507; }
-        body.past-mode { background-color: #050403; }
         
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--c-void); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        
-        /* --- BACKGROUND FX --- */
+        /* FX Layers */
         .scanline-overlay {
             position: fixed; inset: 0; pointer-events: none; z-index: 50;
             background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 50%);
@@ -99,13 +93,6 @@ function getYouTubeId(url) {
         }
         .future-mode .scanline-overlay { opacity: 0.4; }
         
-        .paper-overlay {
-            position: fixed; inset: 0; pointer-events: none; z-index: 40;
-            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
-            opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
-        }
-        .past-mode .paper-overlay { opacity: 0.3; }
-
         .grid-bg {
             position: fixed; inset: 0; pointer-events: none; z-index: 1;
             background-image: 
@@ -116,10 +103,10 @@ function getYouTubeId(url) {
         }
         .future-mode .grid-bg { opacity: 1; }
         
-        /* --- NAV --- */
+        /* Nav */
         nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(3, 3, 3, 0.9); backdrop-filter: blur(12px);
+            background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
             transition: border-color 0.7s;
         }
@@ -132,156 +119,121 @@ function getYouTubeId(url) {
         }
         
         .logo-section { display: flex; align-items: center; gap: 1rem; cursor: pointer; }
-        
-        .logo-icon {
-            width: 40px; height: 40px; 
-            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .logo-icon { width: 40px; height: 40px; transition: transform 0.7s; }
         .future-mode .logo-icon { transform: rotate(0deg); }
         .past-mode .logo-icon { transform: rotate(180deg); }
         
-        .logo-text h1 {
-            font-size: 1.25rem; font-weight: 900; letter-spacing: 0.1em;
-        }
+        .logo-text h1 { font-size: 1.25rem; font-weight: 900; letter-spacing: 0.1em; margin: 0; }
         .future-mode .logo-text h1 { font-family: 'Orbitron', sans-serif; }
         .past-mode .logo-text h1 { font-family: 'Cinzel', serif; }
 
-        .logo-subtitle {
-            font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
-            transition: color 0.7s;
-        }
+        .logo-subtitle { font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; transition: color 0.7s; margin: 0; }
         .future-mode .logo-subtitle { color: var(--c-cyan); }
         .past-mode .logo-subtitle { color: var(--c-amber); }
 
-        /* --- MODE TOGGLE --- */
+        /* Toggle */
         .mode-toggle {
             position: relative; display: inline-flex; align-items: center;
             height: 28px; width: 140px; border-radius: 99px;
             border: 1px solid #333; background: rgba(0,0,0,0.5);
-            cursor: pointer; overflow: hidden; margin-left: 1.5rem;
-            transition: all 0.3s;
+            cursor: pointer; overflow: hidden; margin-left: 1.5rem; transition: all 0.3s;
         }
         .future-mode .mode-toggle { border-color: var(--c-cyan); }
         .past-mode .mode-toggle { border-color: var(--c-amber); }
 
         .mode-slider {
             position: absolute; width: 50%; height: 100%; top: 0;
-            background: #333; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 0;
+            background: #333; transition: transform 0.4s; z-index: 0;
         }
-        .future-mode .mode-slider { 
-            transform: translateX(100%); 
-            background: linear-gradient(90deg, transparent, var(--c-cyan-dim));
-            border-left: 2px solid var(--c-cyan);
-        }
-        .past-mode .mode-slider { 
-            transform: translateX(0%); 
-            background: linear-gradient(90deg, var(--c-amber-dim), transparent);
-            border-right: 2px solid var(--c-amber);
-        }
+        .future-mode .mode-slider { transform: translateX(100%); background: linear-gradient(90deg, transparent, var(--c-cyan-dim)); border-left: 2px solid var(--c-cyan); }
+        .past-mode .mode-slider { transform: translateX(0%); background: linear-gradient(90deg, var(--c-amber-dim), transparent); border-right: 2px solid var(--c-amber); }
 
         .mode-labels {
             position: absolute; inset: 0; display: flex; justify-content: space-between;
-            align-items: center; padding: 0 16px; font-size: 0.65rem;
-            font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-            pointer-events: none; z-index: 1;
+            align-items: center; padding: 0 16px; font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; z-index: 1;
         }
         
-        /* --- LINKS --- */
         .nav-links { display: flex; gap: 2rem; }
         .nav-link {
-            color: #888; text-decoration: none; font-size: 0.8rem;
-            font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em;
-            transition: color 0.3s;
+            color: #888; text-decoration: none; font-size: 0.8rem; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.1em; transition: color 0.3s;
         }
         .nav-link:hover { color: #fff; }
 
-        /* FIX: Mobile Navigation */
         @media (max-width: 768px) {
-            .nav-content { 
-                flex-direction: column; 
-                height: auto; 
-                padding: 1rem; 
-                gap: 1rem; 
-            }
-            .logo-section { margin-bottom: 0.5rem; }
-            .nav-links { 
-                display: flex; 
-                gap: 1rem; 
-                font-size: 0.7rem; 
-                flex-wrap: wrap; 
-                justify-content: center;
-            }
-            .mode-toggle { margin: 0; transform: scale(0.9); }
+            .nav-content { flex-direction: column; height: auto; padding: 1rem; gap: 1rem; }
+            .mode-toggle { display: none; }
         }
 
-        /* --- HERO --- */
+        /* Hero */
         .hero {
             min-height: 80vh; display: flex; align-items: center; justify-content: center;
             text-align: center; position: relative; padding-top: 80px;
         }
         .hero-title {
-            font-size: clamp(3rem, 10vw, 7rem); font-weight: 900;
-            line-height: 1.1; margin-bottom: 1.5rem;
-            background-clip: text; -webkit-background-clip: text;
-            color: transparent; transition: all 1s;
+            font-size: clamp(3rem, 10vw, 7rem); font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem;
+            background-clip: text; -webkit-background-clip: text; color: transparent; transition: all 1s;
         }
         .future-mode .hero-title {
-            font-family: 'Orbitron', sans-serif;
-            background-image: linear-gradient(to bottom, #fff, #999);
+            font-family: 'Orbitron', sans-serif; background-image: linear-gradient(to bottom, #fff, #999);
             text-shadow: 0 0 30px rgba(34, 211, 238, 0.3);
         }
         .past-mode .hero-title {
-            font-family: 'Cinzel', serif;
-            background-image: linear-gradient(to bottom, #fff, #d4d4d4);
+            font-family: 'Cinzel', serif; background-image: linear-gradient(to bottom, #fff, #d4d4d4);
             text-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
         }
 
-        /* --- CARDS --- */
+        /* Card Grid */
         .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
         .grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); }
         
+        /* CARD STYLES - NOW CLICKABLE */
         .card {
             background: #080808; border: 1px solid #222; border-radius: 4px;
-            overflow: hidden; transition: all 0.4s; position: relative;
+            overflow: hidden; transition: all 0.4s; position: relative; display: flex; flex-direction: column;
+            text-decoration: none; /* Remove underline from anchor */
+            color: inherit; /* Inherit text color */
+            cursor: pointer;
         }
         .card:hover { transform: translateY(-5px); }
         .future-mode .card:hover { border-color: var(--c-cyan); box-shadow: 0 10px 40px -10px rgba(34,211,238,0.2); }
         .past-mode .card:hover { border-color: var(--c-amber); box-shadow: 0 10px 40px -10px rgba(245,158,11,0.2); }
 
-        .card-image { width: 100%; aspect-ratio: 16/9; object-fit: cover; filter: grayscale(20%); transition: filter 0.4s; }
-        .card:hover .card-image { filter: grayscale(0%); }
+        .card-image-wrapper { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #111; }
+        .card-image { 
+            width: 100%; height: 100%; object-fit: cover; 
+            filter: grayscale(40%) contrast(1.1); transition: filter 0.4s; 
+        }
+        .card:hover .card-image { filter: grayscale(0%) contrast(1); }
 
-        .card-content { padding: 1.5rem; }
-        .card-title { font-size: 1.4rem; margin-bottom: 0.5rem; color: #fff; }
-        .future-mode .card-title { font-family: 'Orbitron', sans-serif; }
-        .past-mode .card-title { font-family: 'Cinzel', serif; }
+        .card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 1.25rem; margin-bottom: 0.5rem; color: #fff; line-height: 1.3; }
+        .future-mode .card-title { font-family: 'Orbitron', sans-serif; letter-spacing: 0.02em; }
+        .past-mode .card-title { font-family: 'Cinzel', serif; font-weight: 700; }
 
         .tag {
-            font-size: 0.7rem; padding: 4px 8px; border: 1px solid #333;
-            border-radius: 4px; text-transform: uppercase; margin-right: 8px; display: inline-block;
+            font-size: 0.65rem; padding: 4px 8px; border: 1px solid #333;
+            border-radius: 2px; text-transform: uppercase; margin-right: 6px; display: inline-block;
+            letter-spacing: 0.05em; color: #888;
         }
         
-        .section-header { padding: 4rem 0 2rem; border-top: 1px solid #222; margin-top: 4rem; }
-        .section-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; }
+        .section-header { padding: 4rem 0 2rem; border-top: 1px solid #222; margin-top: 4rem; display: flex; align-items: baseline; gap: 1rem; }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: #fff; }
         .past-mode .section-title { font-family: 'Cinzel', serif; }
-
+        .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; }
     </style>
 </head>
 
-<!-- Default to future, but script immediately overrides to avoid flash -->
 <body class="future-mode">
-    <!-- FIX: Blocking script to prevent Flash of Wrong Theme -->
     <script is:inline>
-        const savedMode = localStorage.getItem('chrono_mode') || 'future';
+        const saved = localStorage.getItem('chrono_mode') || 'future';
         document.body.classList.remove('future-mode');
-        document.body.classList.add(savedMode + '-mode');
+        document.body.classList.add(saved + '-mode');
     </script>
 
-    <!-- FX Layers -->
     <canvas id="starfield" style="position: fixed; inset:0; z-index: 0; opacity: 0; transition: opacity 1s;"></canvas>
     <div class="scanline-overlay"></div>
-    <div class="paper-overlay"></div>
     <div class="grid-bg"></div>
 
     <nav>
@@ -314,7 +266,7 @@ function getYouTubeId(url) {
             <div class="nav-links">
                 <a href="#articles" class="nav-link">Archive</a>
                 <a href="#videos" class="nav-link">Transmissions</a>
-                <a href="/keystatic" class="nav-link" style="color: var(--c-cyan);">Login</a>
+                <a href="/keystatic" class="nav-link" style="color: var(--c-cyan);">Admin</a>
             </div>
         </div>
     </nav>
@@ -330,23 +282,28 @@ function getYouTubeId(url) {
         <section class="container" id="articles">
             <div class="section-header">
                 <h2 class="section-title">The Archive</h2>
+                <span class="section-subtitle">// Written Records</span>
             </div>
+            
             <div class="grid" id="articles-grid">
                 {articles.length > 0 ? articles.map(item => (
-                    <article class="card" data-mode={item.data.mode}>
+                    // FIX: Wrapped the entire card in the Anchor Tag
+                    <a href={`/articles/${item.slug}`} class="card" data-mode={item.data.mode}>
                         <div class="card-image-wrapper">
                             {item.data.featuredImage && (
-                                <img src={item.data.featuredImage} class="card-image" loading="lazy" />
+                                <img src={item.data.featuredImage} class="card-image" loading="lazy" alt={item.data.title} />
                             )}
                         </div>
                         <div class="card-content">
                             <h3 class="card-title">{item.data.title}</h3>
-                            <div style="margin-bottom: 1rem;">
-                                {item.data.tags.map(t => <span class="tag">{t}</span>)}
+                            <div style="margin-bottom: 0.5rem;">
+                                {item.data.tags.slice(0, 3).map(t => <span class="tag">{t}</span>)}
                             </div>
-                            <p style="color:#888; font-size: 0.9rem;">{item.data.metaDescription}</p>
+                            <p style="color:#888; font-size: 0.9rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                {item.data.metaDescription}
+                            </p>
                         </div>
-                    </article>
+                    </a>
                 )) : (
                     <div style="grid-column: 1/-1; padding: 4rem; border: 1px dashed #333; text-align: center; color: #666;">
                         ARCHIVE EMPTY // AWAITING DATA INPUT
@@ -358,13 +315,14 @@ function getYouTubeId(url) {
         <section class="container" id="videos">
             <div class="section-header">
                 <h2 class="section-title">Transmissions</h2>
+                <span class="section-subtitle">// Visual Feeds</span>
             </div>
             <div class="grid" id="videos-grid">
-                {videos.map(item => (
-                    <a href={item.data.youtubeUrl} target="_blank" class="card" data-mode={item.data.mode} style="text-decoration: none;">
+                {videos.length > 0 ? videos.map(item => (
+                    <a href={item.data.youtubeUrl} target="_blank" class="card" data-mode={item.data.mode}>
                         <div class="card-image-wrapper">
                             {item.data.youtubeId ? (
-                                <img src={`https://img.youtube.com/vi/${item.data.youtubeId}/maxresdefault.jpg`} class="card-image" loading="lazy" />
+                                <img src={`https://img.youtube.com/vi/${item.data.youtubeId}/maxresdefault.jpg`} class="card-image" loading="lazy" alt={item.data.title} />
                             ) : (
                                 <div style="background: #222; height: 100%; display: flex; align-items: center; justify-content: center;">NO SIGNAL</div>
                             )}
@@ -374,7 +332,11 @@ function getYouTubeId(url) {
                             <p style="color:#888; font-size: 0.9rem;">{item.data.description}</p>
                         </div>
                     </a>
-                ))}
+                )) : (
+                    <div style="grid-column: 1/-1; padding: 4rem; border: 1px dashed #333; text-align: center; color: #666;">
+                        NO SIGNAL DETECTED
+                    </div>
+                )}
             </div>
         </section>
     </main>
@@ -384,16 +346,14 @@ function getYouTubeId(url) {
     </footer>
 
     <script>
-        // --- PERSISTENCE & LOGIC ---
+        // ... (Javascript stays the same as before) ...
         const body = document.body;
         const toggleBtn = document.getElementById('mode-toggle-btn');
         const trigger = document.getElementById('mode-trigger');
         const canvas = document.getElementById('starfield');
         
-        // 1. Initial State Check (Recover from inline script)
-        // We just need to sync the canvas and subtitle to the class that was set
-        const currentMode = body.classList.contains('past-mode') ? 'past' : 'future';
-        updateVisuals(currentMode);
+        const savedMode = localStorage.getItem('chrono_mode') || 'future';
+        setMode(savedMode);
 
         function setMode(mode) {
             body.classList.remove('future-mode', 'past-mode');
@@ -403,46 +363,32 @@ function getYouTubeId(url) {
         }
 
         function updateVisuals(mode) {
-            // Toggle Canvas
             if(canvas) canvas.style.opacity = mode === 'future' ? '1' : '0';
-            
-            // Toggle Subtitle
             const sub = document.getElementById('logo-subtitle');
             if(sub) sub.textContent = mode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
-
-            // Filter Content
             filterContent(mode);
         }
 
         function filterContent(mode) {
-            const articles = document.querySelectorAll('#articles-grid .card');
-            const videos = document.querySelectorAll('#videos-grid .card');
-            
-            // Simple filter: Show items that match mode or show all if you prefer
-            // For Chronoscope, we strictly hide the other timeline
-            [...articles, ...videos].forEach(el => {
+            const items = document.querySelectorAll('.card');
+            items.forEach(el => {
                 const itemMode = el.getAttribute('data-mode');
-                // Ensure default to current mode if undefined, or hide if mismatch
-                if (!itemMode || itemMode === mode) {
-                    el.style.display = 'block';
+                if (!itemMode || itemMode.toLowerCase() === mode) {
+                    el.style.display = 'flex';
                 } else {
                     el.style.display = 'none';
                 }
             });
         }
 
-        // 2. Event Listeners
-        if(toggleBtn) toggleBtn.addEventListener('click', () => {
-            const newMode = body.classList.contains('future-mode') ? 'past' : 'future';
-            setMode(newMode);
-        });
-        
-        if(trigger) trigger.addEventListener('click', () => {
-             const newMode = body.classList.contains('future-mode') ? 'past' : 'future';
-             setMode(newMode);
+        [toggleBtn, trigger].forEach(el => {
+            if(el) el.addEventListener('click', () => {
+                const newMode = body.classList.contains('future-mode') ? 'past' : 'future';
+                setMode(newMode);
+            });
         });
 
-        // 3. Simple Starfield
+        // Starfield logic
         const ctx = canvas.getContext('2d');
         let width, height;
         let stars = [];
@@ -450,11 +396,12 @@ function getYouTubeId(url) {
         function initStars() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            stars = Array.from({length: 150}, () => ({
+            stars = Array.from({length: 120}, () => ({
                 x: Math.random() * width,
                 y: Math.random() * height,
                 size: Math.random() * 1.5,
-                speed: Math.random() * 0.2 + 0.05
+                speed: Math.random() * 0.15 + 0.05,
+                alpha: Math.random()
             }));
         }
 
@@ -463,12 +410,9 @@ function getYouTubeId(url) {
                 requestAnimationFrame(animate);
                 return; 
             }
-            
             ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = '#22d3ee';
-            
             stars.forEach(s => {
-                ctx.globalAlpha = Math.random() * 0.5 + 0.3;
+                ctx.fillStyle = `rgba(34, 211, 238, ${s.alpha})`; 
                 ctx.beginPath();
                 ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
                 ctx.fill();
@@ -481,9 +425,6 @@ function getYouTubeId(url) {
         window.addEventListener('resize', initStars);
         initStars();
         animate();
-        
-        // Initial filter run
-        filterContent(currentMode);
     </script>
 </body>
 </html>
