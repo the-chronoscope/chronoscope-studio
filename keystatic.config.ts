@@ -17,6 +17,9 @@ export default config({
       schema: {
         title: fields.slug({ name: { label: 'Title' } }),
         
+        // Added 'draft' field to match existing data and allow editing
+        draft: fields.checkbox({ label: 'Draft', defaultValue: false }),
+
         // Split Schema for Better UX
         subtitle: fields.text({ label: 'Subtitle / Blurb', multiline: true }),
         seoKeywords: fields.text({ label: 'SEO Keywords', description: 'Hidden from UI' }),
