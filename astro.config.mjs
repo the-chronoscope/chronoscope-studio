@@ -2,25 +2,32 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import keystatic from '@keystatic/astro';
-import vercel from '@astrojs/vercel';
+import vercel from '@astrojs/vercel/serverless';
 
+// https://astro.build/config
 export default defineConfig({
   site: 'https://chronoscope-studio.vercel.app',
-  output: 'server',
-  adapter: vercel(),
+  
+  // CRITICAL: Must be 'hybrid' for Keystatic GitHub mode to work
+  // This allows static pages + dynamic API routes for OAuth
+  output: 'hybrid',
+  
+  // Use serverless adapter (not edge) to ensure process.env is available
+  adapter: vercel({
+    edgeMiddleware: false,
+  }),
+  
   integrations: [
     react(),
     tailwind(),
-    keystatic()
+    keystatic(), // Must come after React
   ],
+  
   vite: {
     build: {
-      chunkSizeWarningLimit: 5000
+      chunkSizeWarningLimit: 5000,
     },
-    // We define the ID so the browser (client-side) can read it.
-    // We DO NOT define the secret here; the server reads that natively.
-    define: {
-      'process.env.KEYSTATIC_GITHUB_CLIENT_ID': JSON.stringify(process.env.KEYSTATIC_GITHUB_CLIENT_ID),
-    }
-  }
+    // DO NOT add 'define' block for environment variables
+    // Vercel injects them at runtime automatically
+  },
 });
