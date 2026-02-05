@@ -8,10 +8,10 @@ import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   site: 'https://chronoscope-studio.vercel.app',
   
-  // UPDATED: Use 'server' mode for Keystatic (hybrid was removed in latest Astro 5)
+  // For Keystatic with GitHub, we need server-side rendering
+  // In latest Astro 5, use 'server' - do NOT use 'hybrid' or 'static'
   output: 'server',
   
-  // Use serverless adapter to ensure process.env is available
   adapter: vercel({
     edgeMiddleware: false,
   }),
@@ -19,12 +19,6 @@ export default defineConfig({
   integrations: [
     react(),
     tailwind(),
-    keystatic(), // Must come after React
+    keystatic(),
   ],
-  
-  vite: {
-    build: {
-      chunkSizeWarningLimit: 5000,
-    },
-  },
 });
