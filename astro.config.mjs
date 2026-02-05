@@ -5,7 +5,10 @@ import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  // Server mode ensures API routes are dynamic and have access to process.env
+  // 1. WE MUST DEFINE THE SITE URL
+  // This ensures authentication redirects use the correct domain (https)
+  site: 'https://chronoscope-studio.vercel.app',
+
   output: 'server',
   adapter: vercel(),
   integrations: [
