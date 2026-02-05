@@ -5,12 +5,12 @@ import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  output: 'static', // In Astro 5, 'static' + adapter = Hybrid support
+  output: 'server', // Ensures runtime dynamics
   adapter: vercel(),
   integrations: [
     react(),
     tailwind(),
-    keystatic()
+    keystatic() // We let the integration handle the secrets automatically from process.env
   ],
   vite: {
     build: {
