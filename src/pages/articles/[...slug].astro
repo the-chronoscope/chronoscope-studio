@@ -15,8 +15,10 @@ const { entry } = Astro.props;
 const { Content } = await entry.render();
 
 // 3. Data normalization
+// Default to 'future' if mode is missing
 const mode = (entry.data.mode || 'future').toLowerCase();
-const image = entry.data.featuredImage || entry.data.coverImage;
+// Handle image fallback (coverImage is from Keystatic, featuredImage is legacy)
+const image = entry.data.coverImage || entry.data.featuredImage;
 ---
 
 <!DOCTYPE html>
@@ -25,7 +27,7 @@ const image = entry.data.featuredImage || entry.data.coverImage;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{entry.data.title} | The Chronoscope</title>
-    <meta name="description" content={entry.data.metaDescription}>
+    <meta name="description" content={entry.data.metaDescription || entry.data.subtitle}>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -43,6 +45,7 @@ const image = entry.data.featuredImage || entry.data.coverImage;
             color: var(--text-color); 
             font-family: 'Inter', sans-serif; 
             margin: 0;
+            overflow-x: hidden;
         }
 
         /* Typography */
@@ -62,14 +65,14 @@ const image = entry.data.featuredImage || entry.data.coverImage;
             border: 1px solid #333;
         }
 
-        .header { text-align: center; margin-bottom: 3rem; }
+        .header { text-align: center; margin-bottom: 3rem; margin-top: 2rem; }
         .title { 
             font-size: clamp(2rem, 5vw, 3.5rem); 
             line-height: 1.1; margin-bottom: 1rem;
             text-transform: uppercase; letter-spacing: 0.05em;
         }
         
-        .meta { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; }
+        .meta { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
         
         /* Content Styling */
         .content { border-top: 1px solid #222; padding-top: 2rem; }
@@ -78,12 +81,17 @@ const image = entry.data.featuredImage || entry.data.coverImage;
             border-left: 4px solid var(--accent); 
             padding-left: 1.5rem; margin: 2rem 0; 
             font-style: italic; color: #fff;
+            background: rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
         }
+        .content img { max-width: 100%; height: auto; border-radius: 4px; margin: 2rem 0; }
 
         /* Nav */
         .nav-back { 
             display: inline-block; margin-bottom: 2rem; 
             color: #666; text-decoration: none; font-size: 0.9rem;
+            text-transform: uppercase; letter-spacing: 0.1em;
         }
         .nav-back:hover { color: var(--accent); }
     </style>
@@ -95,10 +103,10 @@ const image = entry.data.featuredImage || entry.data.coverImage;
         
         <header class="header">
             <div class="meta">
-                {entry.data.publishDate && new Date(entry.data.publishDate).toLocaleDateString()} // {mode} TIMELINE
+                {entry.data.publishDate ? new Date(entry.data.publishDate).toLocaleDateString() : 'TRANSMISSION'} // {mode} TIMELINE
             </div>
             <h1 class="title">{entry.data.title}</h1>
-            {entry.data.subtitle && <p style="font-size: 1.2rem; color: #888;">{entry.data.subtitle}</p>}
+            {entry.data.subtitle && <p style="font-size: 1.2rem; color: #888; font-family: 'Inter', sans-serif;">{entry.data.subtitle}</p>}
         </header>
 
         {image && <img src={image} class="hero-image" alt={entry.data.title} />}
@@ -107,7 +115,7 @@ const image = entry.data.featuredImage || entry.data.coverImage;
             <Content />
         </div>
         
-        <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #222; text-align: center; color: #444;">
+        <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #222; text-align: center; color: #444; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em;">
             END TRANSMISSION
         </footer>
     </div>
