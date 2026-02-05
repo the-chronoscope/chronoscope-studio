@@ -1,6 +1,7 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
+  // GENERIC CONFIG - NO SECRETS HERE
   storage: import.meta.env.PROD
     ? {
         kind: 'github',
@@ -8,12 +9,6 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // 1. Client ID: Must use PUBLIC_ prefix so the browser sees it.
-        clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
-        
-        // 2. Client Secret: WE DO NOT INCLUDE IT HERE.
-        // The Keystatic backend will automatically find 'KEYSTATIC_GITHUB_CLIENT_SECRET' 
-        // in the server environment. This prevents Astro from stripping it.
       }
     : {
         kind: 'local',
