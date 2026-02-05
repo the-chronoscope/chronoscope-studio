@@ -66,9 +66,18 @@ const videos = allVideos
         .paper-overlay {
             position: fixed; inset: 0; pointer-events: none; z-index: 40;
             background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
-            mix-blend-mode: soft-light; opacity: 0; transition: opacity 0.7s;
+            background-color: rgba(120, 53, 15, 0.05);
+            mix-blend-mode: multiply; opacity: 0; transition: opacity 0.7s;
         }
-        .past-mode .paper-overlay { opacity: 0.2; }
+        .past-mode .paper-overlay { opacity: 0.4; }
+        
+        /* Vignette overlay for past mode */
+        .vignette-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 41;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%);
+            opacity: 0; transition: opacity 0.7s;
+        }
+        .past-mode .vignette-overlay { opacity: 0.5; }
         
         /* Grid Background */
         .grid-bg {
@@ -315,8 +324,10 @@ const videos = allVideos
 
 <body class="future-mode" id="body">
     <!-- Background Effects -->
+    <canvas id="starfield" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0; transition: opacity 0.7s;"></canvas>
     <div class="scanline-overlay"></div>
     <div class="paper-overlay"></div>
+    <div class="vignette-overlay"></div>
     <div class="grid-bg"></div>
     
     <!-- Navigation -->
@@ -485,6 +496,57 @@ const videos = allVideos
     </footer>
     
     <script>
+        // Starfield Animation
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        let animationId;
+        
+        function initStarfield() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            stars = [];
+            const numStars = 200;
+            
+            for (let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5,
+                    speed: Math.random() * 0.5 + 0.1,
+                    opacity: Math.random() * 0.5 + 0.5
+                });
+            }
+        }
+        
+        function animateStarfield() {
+            ctx.fillStyle = 'rgba(3, 5, 7, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(34, 211, 238, ${star.opacity})`;
+                ctx.fill();
+                
+                star.y += star.speed;
+                
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+            
+            animationId = requestAnimationFrame(animateStarfield);
+        }
+        
+        function stopStarfield() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
         // Mode toggle
         let currentMode = 'future';
         
@@ -497,6 +559,15 @@ const videos = allVideos
             const subtitle = document.getElementById('logo-subtitle');
             if (subtitle) {
                 subtitle.textContent = currentMode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
+            }
+            
+            // Toggle starfield
+            if (currentMode === 'future') {
+                canvas.style.opacity = '1';
+                animateStarfield();
+            } else {
+                canvas.style.opacity = '0';
+                stopStarfield();
             }
             
             // Filter content
@@ -527,6 +598,16 @@ const videos = allVideos
         
         // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize starfield
+            initStarfield();
+            animateStarfield();
+            canvas.style.opacity = '1';
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                initStarfield();
+            });
+            
             // Mode toggle button
             const modeToggle = document.getElementById('mode-toggle');
             if (modeToggle) {
