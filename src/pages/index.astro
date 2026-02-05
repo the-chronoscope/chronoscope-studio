@@ -66,6 +66,11 @@ function getYouTubeId(url) {
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px; /* Offsets the fixed header */
+        }
+
         body {
             background: var(--c-void);
             color: var(--c-text);
@@ -83,18 +88,28 @@ function getYouTubeId(url) {
         }
         .future-mode .scanline-overlay { opacity: 0.3; }
         
+        /* PAST MODE TEXTURES */
         .paper-overlay {
             position: fixed; inset: 0; pointer-events: none; z-index: 1;
             background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
-            opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
+            opacity: 0; transition: opacity 0.7s;
         }
-        /* UPDATED: Increased visibility for Past mode and added separation */
-        .past-mode .paper-overlay { 
-            opacity: 0.6; 
-            filter: contrast(1.2) sepia(0.2);
-        }
-        .past-mode { background-color: #120e0b; } 
 
+        .past-mode { 
+            /* Darker, deeper background */
+            background-color: #0c0a08; 
+            /* Subtle pattern behind the paper texture */
+            background-image: radial-gradient(#1a1510 1px, transparent 1px);
+            background-size: 20px 20px;
+        } 
+
+        .past-mode .paper-overlay { 
+            opacity: 0.8; 
+            mix-blend-mode: soft-light;
+            filter: contrast(1.5) sepia(0.4);
+        }
+
+        /* FUTURE MODE GRID */
         .grid-bg {
             position: fixed; inset: 0; pointer-events: none; z-index: 0;
             background-image: 
@@ -103,7 +118,8 @@ function getYouTubeId(url) {
             background-size: 50px 50px;
             opacity: 0; transition: opacity 0.7s;
         }
-        .future-mode .grid-bg { opacity: 1; }
+        /* UPDATED: Reduced visibility from 1 to 0.2 */
+        .future-mode .grid-bg { opacity: 0.2; }
         
         /* --- NAV --- */
         nav {
@@ -116,8 +132,8 @@ function getYouTubeId(url) {
             display: flex; align-items: center; 
             height: 64px; padding: 0 2rem; gap: 2rem;
             max-width: 1600px; margin: 0 auto;
-            /* FIX: Align items to start, push search to end */
             justify-content: flex-start;
+            position: relative; /* For search positioning */
         }
         
         .logo-section { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; flex-shrink: 0; }
@@ -133,7 +149,7 @@ function getYouTubeId(url) {
         .future-mode .logo-subtitle { color: var(--c-cyan); }
         .past-mode .logo-subtitle { color: var(--c-amber); }
 
-        /* --- TOGGLE (WIDER & LABELED) --- */
+        /* --- TOGGLE --- */
         .mode-toggle {
             position: relative; display: flex; align-items: center; justify-content: space-between;
             height: 28px; width: 140px; border-radius: 99px;
@@ -169,7 +185,6 @@ function getYouTubeId(url) {
         .past-mode .toggle-labels span:last-child { color: #444; }
 
         /* --- NAV LINKS --- */
-        /* Adjusted margin to sit closer to toggle */
         .nav-links { display: flex; gap: 1.5rem; align-items: center; margin-left: 1rem; }
         .nav-link {
             color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 600;
@@ -177,14 +192,41 @@ function getYouTubeId(url) {
         }
         .nav-link:hover { color: #fff; }
 
-        /* Search - Pushed to right */
+        /* Search Styles */
+        .search-wrapper { margin-left: auto; position: relative; display: flex; align-items: center; }
         .search-btn {
             background: none; border: none; color: #888; cursor: pointer; padding: 0.5rem;
             transition: color 0.3s; display: flex; align-items: center;
-            margin-left: auto; /* Pushes search to the far right */
         }
         .search-btn:hover { color: #fff; }
         .search-icon { width: 18px; height: 18px; fill: currentColor; }
+
+        .search-input-container {
+            position: absolute; right: 0; top: 100%; 
+            margin-top: 10px;
+            background: rgba(10,10,10,0.95);
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            width: 250px;
+            backdrop-filter: blur(10px);
+        }
+        .search-input-container.active { display: block; }
+        
+        .search-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #444;
+            color: #fff;
+            padding: 5px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+        .search-input:focus { outline: none; border-color: var(--c-cyan); }
+        .past-mode .search-input:focus { border-color: var(--c-amber); }
+
 
         @media (max-width: 768px) {
             .nav-content { padding: 0 1rem; gap: 1rem; }
@@ -196,7 +238,6 @@ function getYouTubeId(url) {
 
         /* --- HERO (COMPACT) --- */
         .hero {
-            /* UPDATED: Drastically reduced height to show cards immediately */
             min-height: 40vh; 
             display: flex; align-items: center; justify-content: center;
             text-align: center; position: relative; 
@@ -252,7 +293,6 @@ function getYouTubeId(url) {
             letter-spacing: 0.05em; color: #888; margin-bottom: 0.5rem;
         }
         
-        /* Updated Section Header Spacing */
         .section-header { 
             padding: 0 0 1.5rem; border-top: 1px solid #222; margin-top: 1rem;
             display: flex; align-items: baseline; gap: 1rem; 
@@ -282,191 +322,4 @@ function getYouTubeId(url) {
                     <svg viewBox="0 0 100 100">
                         <defs>
                             <linearGradient id="g-fut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#0e7490"/></linearGradient>
-                            <linearGradient id="g-pst" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#b45309"/></linearGradient>
-                        </defs>
-                        <path d="M50 5 A 45 45 0 0 1 50 95 A 22.5 22.5 0 0 1 50 50 A 22.5 22.5 0 0 0 50 5" fill="url(#g-fut)" />
-                        <path d="M50 95 A 45 45 0 0 1 50 5 A 22.5 22.5 0 0 1 50 50 A 22.5 22.5 0 0 0 50 95" fill="url(#g-pst)" />
-                    </svg>
-                </div>
-                <div class="logo-text">
-                    <h1>CHRONOSCOPE</h1>
-                    <p class="logo-subtitle" id="logo-subtitle">Observatory</p>
-                </div>
-            </div>
-
-            <div class="mode-toggle" id="mode-toggle-btn">
-                <div class="toggle-thumb"></div>
-                <div class="toggle-labels">
-                    <span>Past</span>
-                    <span>Future</span>
-                </div>
-            </div>
-
-            <div class="nav-links">
-                <a href="#articles" class="nav-link">Archive</a>
-                <a href="#videos" class="nav-link">Transmissions</a>
-                <a href="/keystatic" class="nav-link" style="color: var(--c-cyan);">Login</a>
-            </div>
-
-            <button class="search-btn" title="Search Database">
-                <svg class="search-icon" viewBox="0 0 24 24">
-                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                </svg>
-            </button>
-        </div>
-    </nav>
-
-    <main>
-        <section class="hero">
-            <div class="container">
-                <h1 class="hero-title">ORIGINS &<br>FUTURES</h1>
-                <p class="hero-tag">A Digital Observatory</p>
-            </div>
-        </section>
-
-        <section class="container" id="articles">
-            <div class="section-header">
-                <h2 class="section-title">The Archive</h2>
-                <span class="section-subtitle">// Written Records</span>
-            </div>
-            
-            <div class="grid" id="articles-grid">
-                {articles.length > 0 ? articles.map(item => (
-                    <a href={`/articles/${item.slug}`} class="card" data-mode={item.data.mode}>
-                        <div class="card-image-wrapper">
-                            {item.data.featuredImage && (
-                                <img src={item.data.featuredImage} class="card-image" loading="lazy" alt={item.data.title} />
-                            )}
-                        </div>
-                        <div class="card-content">
-                            <h3 class="card-title">{item.data.title}</h3>
-                            <div style="margin-bottom: 0.5rem;">
-                                {item.data.tags.slice(0, 3).map(t => <span class="tag">{t}</span>)}
-                            </div>
-                            <p style="color:#888; font-size: 0.85rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                                {item.data.description}
-                            </p>
-                        </div>
-                    </a>
-                )) : (
-                    <div style="grid-column: 1/-1; padding: 4rem; border: 1px dashed #333; text-align: center; color: #666;">
-                        ARCHIVE EMPTY // AWAITING DATA INPUT
-                    </div>
-                )}
-            </div>
-        </section>
-
-        <section class="container" id="videos">
-            <div class="section-header">
-                <h2 class="section-title">Transmissions</h2>
-                <span class="section-subtitle">// Visual Feeds</span>
-            </div>
-            <div class="grid" id="videos-grid">
-                {videos.length > 0 ? videos.map(item => (
-                    <a href={item.data.youtubeUrl} target="_blank" class="card" data-mode={item.data.mode}>
-                        <div class="card-image-wrapper">
-                            {item.data.youtubeId ? (
-                                <img src={`https://img.youtube.com/vi/${item.data.youtubeId}/maxresdefault.jpg`} class="card-image" loading="lazy" alt={item.data.title} />
-                            ) : (
-                                <div style="background: #222; height: 100%; display: flex; align-items: center; justify-content: center;">NO SIGNAL</div>
-                            )}
-                        </div>
-                        <div class="card-content">
-                            <h3 class="card-title">{item.data.title}</h3>
-                            <p style="color:#888; font-size: 0.85rem;">{item.data.description}</p>
-                        </div>
-                    </a>
-                )) : (
-                    <div style="grid-column: 1/-1; padding: 4rem; border: 1px dashed #333; text-align: center; color: #666;">
-                        NO SIGNAL DETECTED
-                    </div>
-                )}
-            </div>
-        </section>
-    </main>
-
-    <footer style="margin-top: 8rem; padding: 4rem 0; border-top: 1px solid #222; text-align: center; color: #444; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em;">
-        EST. 2026 // The Chronoscope
-    </footer>
-
-    <script>
-        const body = document.body;
-        const toggleBtn = document.getElementById('mode-toggle-btn');
-        const trigger = document.getElementById('mode-trigger');
-        const canvas = document.getElementById('starfield');
-        
-        const savedMode = localStorage.getItem('chrono_mode') || 'future';
-        setMode(savedMode);
-
-        function setMode(mode) {
-            body.classList.remove('future-mode', 'past-mode');
-            body.classList.add(`${mode}-mode`);
-            localStorage.setItem('chrono_mode', mode);
-            updateVisuals(mode);
-        }
-
-        function updateVisuals(mode) {
-            if(canvas) canvas.style.opacity = mode === 'future' ? '1' : '0';
-            const sub = document.getElementById('logo-subtitle');
-            if(sub) sub.textContent = mode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
-            filterContent(mode);
-        }
-
-        function filterContent(mode) {
-            const items = document.querySelectorAll('.card');
-            items.forEach(el => {
-                const itemMode = el.getAttribute('data-mode');
-                if (!itemMode || itemMode.toLowerCase() === mode) {
-                    el.style.display = 'flex';
-                } else {
-                    el.style.display = 'none';
-                }
-            });
-        }
-
-        [toggleBtn, trigger].forEach(el => {
-            if(el) el.addEventListener('click', () => {
-                const newMode = body.classList.contains('future-mode') ? 'past' : 'future';
-                setMode(newMode);
-            });
-        });
-
-        const ctx = canvas.getContext('2d');
-        let width, height;
-        let stars = [];
-
-        function initStars() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            stars = Array.from({length: 120}, () => ({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                size: Math.random() * 1.5,
-                speed: Math.random() * 0.15 + 0.05,
-                alpha: Math.random()
-            }));
-        }
-
-        function animate() {
-            if(body.classList.contains('past-mode')) {
-                requestAnimationFrame(animate);
-                return; 
-            }
-            ctx.clearRect(0, 0, width, height);
-            stars.forEach(s => {
-                ctx.fillStyle = `rgba(34, 211, 238, ${s.alpha})`; 
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
-                ctx.fill();
-                s.y -= s.speed;
-                if(s.y < 0) s.y = height;
-            });
-            requestAnimationFrame(animate);
-        }
-
-        window.addEventListener('resize', initStars);
-        initStars();
-        animate();
-    </script>
-</body>
-</html>
+                            <linearGradient id="g-pst" x1="
