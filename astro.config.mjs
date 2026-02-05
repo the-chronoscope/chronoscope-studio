@@ -18,11 +18,8 @@ export default defineConfig({
   vite: {
     build: {
       chunkSizeWarningLimit: 5000
-    },
-    // CRITICAL FIX: We force the server build to see these variables
-    define: {
-      'process.env.KEYSTATIC_GITHUB_CLIENT_ID': JSON.stringify(process.env.KEYSTATIC_GITHUB_CLIENT_ID),
-      'process.env.KEYSTATIC_GITHUB_CLIENT_SECRET': JSON.stringify(process.env.KEYSTATIC_GITHUB_CLIENT_SECRET),
     }
+    // REMOVED: 'define' block. 
+    // We must let the Node.js runtime resolve process.env naturally.
   }
 });
