@@ -2,15 +2,10 @@ import { config, fields, collection } from '@keystatic/core';
 
 export default config({
   storage: {
-    kind: 'github',
-    repo: {
-      owner: 'the-chronoscope',
-      name: 'alpha/chronoscope-studio',
-    },
-    // DO NOT specify clientId or clientSecret here
-    // Keystatic will automatically look for:
-    // - KEYSTATIC_GITHUB_CLIENT_ID (will be read at runtime)
-    // - KEYSTATIC_GITHUB_CLIENT_SECRET (will be read at runtime)
+    kind: 'cloud',
+  },
+  cloud: {
+    project: 'alpha/chronoscope-studio',
   },
   
   collections: {
