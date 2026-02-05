@@ -1,20 +1,9 @@
 import { config, fields, collection } from '@keystatic/core';
 
 export default config({
-  storage: import.meta.env.PROD
-    ? {
-        kind: 'github',
-        repo: {
-          owner: 'the-chronoscope',
-          name: 'chronoscope-studio',
-        },
-        // CRITICAL FIX: Remove clientId and clientSecret
-        // Keystatic will automatically read from process.env at runtime
-        // DO NOT specify them here - it causes bundling issues in Astro 5
-      }
-    : {
-        kind: 'local',
-      },
+  storage: {
+    kind: 'cloud',
+  },
   
   collections: {
     articles: collection({
