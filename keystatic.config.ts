@@ -35,8 +35,8 @@ export default config({
         
         publishDate: fields.date({ label: 'Publish Date' }),
         
-        coverImage: fields.image({
-          label: 'Cover Image',
+        featuredImage: fields.image({
+          label: 'Featured Image',
           directory: 'public/images/articles',
           publicPath: '/images/articles/',
         }),
