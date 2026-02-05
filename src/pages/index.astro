@@ -88,9 +88,12 @@ function getYouTubeId(url) {
             background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
             opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
         }
-        /* UPDATED: Increased visibility for Past mode */
-        .past-mode .paper-overlay { opacity: 0.4; }
-        .past-mode { background-color: #1a1510; } 
+        /* UPDATED: Increased visibility for Past mode and added separation */
+        .past-mode .paper-overlay { 
+            opacity: 0.6; 
+            filter: contrast(1.2) sepia(0.2);
+        }
+        .past-mode { background-color: #120e0b; } 
 
         .grid-bg {
             position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -113,6 +116,8 @@ function getYouTubeId(url) {
             display: flex; align-items: center; 
             height: 64px; padding: 0 2rem; gap: 2rem;
             max-width: 1600px; margin: 0 auto;
+            /* FIX: Align items to start, push search to end */
+            justify-content: flex-start;
         }
         
         .logo-section { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; flex-shrink: 0; }
@@ -135,6 +140,7 @@ function getYouTubeId(url) {
             background: #000; border: 1px solid #333;
             cursor: pointer; overflow: hidden; transition: all 0.3s;
             padding: 2px;
+            flex-shrink: 0;
         }
         .mode-toggle:hover { border-color: #555; }
         .future-mode .mode-toggle { border-color: var(--c-cyan); }
@@ -150,9 +156,9 @@ function getYouTubeId(url) {
         .past-mode .toggle-thumb { transform: translateX(0%); background: var(--c-amber); }
 
         .toggle-labels {
-            display: flex; width: 100%; justify-content: space-between; padding: 0 12px;
+            display: flex; width: 100%; justify-content: space-between; padding: 0 16px;
             font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-            z-index: 2; pointer-events: none;
+            z-index: 2; pointer-events: none; position: absolute;
         }
         .toggle-labels span { transition: color 0.3s; }
         
@@ -163,17 +169,19 @@ function getYouTubeId(url) {
         .past-mode .toggle-labels span:last-child { color: #444; }
 
         /* --- NAV LINKS --- */
-        .nav-links { display: flex; gap: 1.5rem; margin-right: auto; align-items: center; }
+        /* Adjusted margin to sit closer to toggle */
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; margin-left: 1rem; }
         .nav-link {
             color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 600;
             text-transform: uppercase; letter-spacing: 0.1em; transition: color 0.3s;
         }
         .nav-link:hover { color: #fff; }
 
-        /* Search */
+        /* Search - Pushed to right */
         .search-btn {
             background: none; border: none; color: #888; cursor: pointer; padding: 0.5rem;
             transition: color 0.3s; display: flex; align-items: center;
+            margin-left: auto; /* Pushes search to the far right */
         }
         .search-btn:hover { color: #fff; }
         .search-icon { width: 18px; height: 18px; fill: currentColor; }
@@ -181,15 +189,15 @@ function getYouTubeId(url) {
         @media (max-width: 768px) {
             .nav-content { padding: 0 1rem; gap: 1rem; }
             .logo-text { display: none; }
-            .nav-links { gap: 1rem; }
+            .nav-links { gap: 1rem; margin-left: 0; }
             .mode-toggle { width: 100px; }
             .toggle-labels { font-size: 0.55rem; padding: 0 8px; }
         }
 
         /* --- HERO (COMPACT) --- */
         .hero {
-            /* UPDATED: Reduced height to show cards immediately */
-            min-height: 45vh; 
+            /* UPDATED: Drastically reduced height to show cards immediately */
+            min-height: 40vh; 
             display: flex; align-items: center; justify-content: center;
             text-align: center; position: relative; 
             padding-top: 80px; 
@@ -244,8 +252,9 @@ function getYouTubeId(url) {
             letter-spacing: 0.05em; color: #888; margin-bottom: 0.5rem;
         }
         
+        /* Updated Section Header Spacing */
         .section-header { 
-            padding: 1rem 0 1.5rem; border-top: 1px solid #222; 
+            padding: 0 0 1.5rem; border-top: 1px solid #222; margin-top: 1rem;
             display: flex; align-items: baseline; gap: 1rem; 
         }
         .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #fff; }
