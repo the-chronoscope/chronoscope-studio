@@ -1,15 +1,24 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 
-export async function getStaticPaths() {
-  const articles = await getCollection('articles');
-  return articles.map(entry => ({
-    params: { slug: entry.slug },
-    props: { entry },
-  }));
+// --- SERVER SIDE LOGIC ---
+// In 'server' mode, we do NOT use getStaticPaths.
+// Instead, we read the 'slug' from the URL and fetch the specific article.
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/404');
 }
 
-const { entry } = Astro.props;
+// Fetch the specific entry by slug
+const entry = await getEntry('articles', slug);
+
+// If no article found, 404
+if (!entry) {
+  return Astro.redirect('/404');
+}
+
 const { Content } = await entry.render();
 
 // Data Normalization
