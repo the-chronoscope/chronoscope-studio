@@ -5,12 +5,13 @@ import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  output: 'server', // Ensures runtime dynamics
+  // Server mode ensures API routes are dynamic and have access to process.env
+  output: 'server',
   adapter: vercel(),
   integrations: [
     react(),
     tailwind(),
-    keystatic() // We let the integration handle the secrets automatically from process.env
+    keystatic()
   ],
   vite: {
     build: {
