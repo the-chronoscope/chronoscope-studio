@@ -8,42 +8,36 @@ const allVideos = await getCollection('videos').catch(() => []);
 
 // 2. Data Transformation (Fixing schema mismatches)
 const articles = allArticles
-  .filter(article => !article.data.draft) // Ensure 'draft' exists in schema or remove this check
+  .filter(article => !article.data.draft)
   .map(article => ({
     ...article,
-    // Robust fallbacks for potentially missing fields
     slug: article.slug,
     data: {
       ...article.data,
       title: article.data.title || 'Untitled Record',
-      // Map 'coverImage' (Keystatic) to 'featuredImage' (Frontend)
       featuredImage: article.data.coverImage || article.data.featuredImage || null,
-      // Map 'subtitle' or excerpt to description
       metaDescription: article.data.subtitle || article.data.description || 'No briefing available.',
-      // Split comma-separated keywords string into an array for tags
       tags: typeof article.data.keywords === 'string' 
         ? article.data.keywords.split(',').map(s => s.trim()) 
         : (article.data.tags || []),
-      // Fallback date
       publishDate: article.data.date || article.data.publishDate || new Date().toISOString(),
       mode: article.data.mode || 'future'
     }
   }))
-  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
+  // Fix: Safe sorting with fallback to 0 to prevent build crashes
+  .sort((a, b) => new Date(b.data.publishDate || 0).getTime() - new Date(a.data.publishDate || 0).getTime());
 
 const videos = allVideos
   .map(video => ({
     ...video,
     data: {
       ...video.data,
-      // Extract YouTube ID safely
       youtubeId: getYouTubeId(video.data.youtubeUrl),
       mode: video.data.mode || 'future'
     }
   }))
   .sort((a, b) => new Date(b.data.publishDate || 0).getTime() - new Date(a.data.publishDate || 0).getTime());
 
-// Helper: Robust YouTube ID Extractor
 function getYouTubeId(url) {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -202,9 +196,23 @@ function getYouTubeId(url) {
         }
         .nav-link:hover { color: #fff; }
 
+        /* FIX: Mobile Navigation */
         @media (max-width: 768px) {
-            .nav-links { display: none; } /* Add mobile menu later */
-            .mode-toggle { display: none; } /* Hide on small screens or relocate */
+            .nav-content { 
+                flex-direction: column; 
+                height: auto; 
+                padding: 1rem; 
+                gap: 1rem; 
+            }
+            .logo-section { margin-bottom: 0.5rem; }
+            .nav-links { 
+                display: flex; 
+                gap: 1rem; 
+                font-size: 0.7rem; 
+                flex-wrap: wrap; 
+                justify-content: center;
+            }
+            .mode-toggle { margin: 0; transform: scale(0.9); }
         }
 
         /* --- HERO --- */
@@ -251,7 +259,7 @@ function getYouTubeId(url) {
 
         .tag {
             font-size: 0.7rem; padding: 4px 8px; border: 1px solid #333;
-            border-radius: 4px; text-transform: uppercase; margin-right: 8px;
+            border-radius: 4px; text-transform: uppercase; margin-right: 8px; display: inline-block;
         }
         
         .section-header { padding: 4rem 0 2rem; border-top: 1px solid #222; margin-top: 4rem; }
@@ -261,8 +269,14 @@ function getYouTubeId(url) {
     </style>
 </head>
 
-<!-- Default to future, script handles persistence -->
+<!-- Default to future, but script immediately overrides to avoid flash -->
 <body class="future-mode">
+    <!-- FIX: Blocking script to prevent Flash of Wrong Theme -->
+    <script is:inline>
+        const savedMode = localStorage.getItem('chrono_mode') || 'future';
+        document.body.classList.remove('future-mode');
+        document.body.classList.add(savedMode + '-mode');
+    </script>
 
     <!-- FX Layers -->
     <canvas id="starfield" style="position: fixed; inset:0; z-index: 0; opacity: 0; transition: opacity 1s;"></canvas>
@@ -285,7 +299,7 @@ function getYouTubeId(url) {
                 </div>
                 <div class="logo-text">
                     <h1>CHRONOSCOPE</h1>
-                    <p class="logo-subtitle">Observatory</p>
+                    <p class="logo-subtitle" id="logo-subtitle">Observatory</p>
                 </div>
             </div>
 
@@ -317,7 +331,7 @@ function getYouTubeId(url) {
             <div class="section-header">
                 <h2 class="section-title">The Archive</h2>
             </div>
-            <div class="grid">
+            <div class="grid" id="articles-grid">
                 {articles.length > 0 ? articles.map(item => (
                     <article class="card" data-mode={item.data.mode}>
                         <div class="card-image-wrapper">
@@ -345,7 +359,7 @@ function getYouTubeId(url) {
             <div class="section-header">
                 <h2 class="section-title">Transmissions</h2>
             </div>
-            <div class="grid">
+            <div class="grid" id="videos-grid">
                 {videos.map(item => (
                     <a href={item.data.youtubeUrl} target="_blank" class="card" data-mode={item.data.mode} style="text-decoration: none;">
                         <div class="card-image-wrapper">
@@ -376,17 +390,45 @@ function getYouTubeId(url) {
         const trigger = document.getElementById('mode-trigger');
         const canvas = document.getElementById('starfield');
         
-        // 1. Load Saved State
-        const savedMode = localStorage.getItem('chrono_mode') || 'future';
-        setMode(savedMode);
+        // 1. Initial State Check (Recover from inline script)
+        // We just need to sync the canvas and subtitle to the class that was set
+        const currentMode = body.classList.contains('past-mode') ? 'past' : 'future';
+        updateVisuals(currentMode);
 
         function setMode(mode) {
             body.classList.remove('future-mode', 'past-mode');
             body.classList.add(`${mode}-mode`);
             localStorage.setItem('chrono_mode', mode);
-            
-            // Toggle Canvas Visibility
+            updateVisuals(mode);
+        }
+
+        function updateVisuals(mode) {
+            // Toggle Canvas
             if(canvas) canvas.style.opacity = mode === 'future' ? '1' : '0';
+            
+            // Toggle Subtitle
+            const sub = document.getElementById('logo-subtitle');
+            if(sub) sub.textContent = mode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
+
+            // Filter Content
+            filterContent(mode);
+        }
+
+        function filterContent(mode) {
+            const articles = document.querySelectorAll('#articles-grid .card');
+            const videos = document.querySelectorAll('#videos-grid .card');
+            
+            // Simple filter: Show items that match mode or show all if you prefer
+            // For Chronoscope, we strictly hide the other timeline
+            [...articles, ...videos].forEach(el => {
+                const itemMode = el.getAttribute('data-mode');
+                // Ensure default to current mode if undefined, or hide if mismatch
+                if (!itemMode || itemMode === mode) {
+                    el.style.display = 'block';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
         }
 
         // 2. Event Listeners
@@ -395,13 +437,12 @@ function getYouTubeId(url) {
             setMode(newMode);
         });
         
-        // Also toggle on logo click for ease
         if(trigger) trigger.addEventListener('click', () => {
              const newMode = body.classList.contains('future-mode') ? 'past' : 'future';
              setMode(newMode);
         });
 
-        // 3. Simple Starfield (Performance Optimized)
+        // 3. Simple Starfield
         const ctx = canvas.getContext('2d');
         let width, height;
         let stars = [];
@@ -420,18 +461,18 @@ function getYouTubeId(url) {
         function animate() {
             if(body.classList.contains('past-mode')) {
                 requestAnimationFrame(animate);
-                return; // Pause rendering if hidden to save battery
+                return; 
             }
             
             ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = '#22d3ee'; // Cyan stars
+            ctx.fillStyle = '#22d3ee';
             
             stars.forEach(s => {
                 ctx.globalAlpha = Math.random() * 0.5 + 0.3;
                 ctx.beginPath();
                 ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
                 ctx.fill();
-                s.y -= s.speed; // Move Up
+                s.y -= s.speed;
                 if(s.y < 0) s.y = height;
             });
             requestAnimationFrame(animate);
@@ -440,6 +481,9 @@ function getYouTubeId(url) {
         window.addEventListener('resize', initStars);
         initStars();
         animate();
+        
+        // Initial filter run
+        filterContent(currentMode);
     </script>
 </body>
 </html>
