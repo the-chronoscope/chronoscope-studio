@@ -8,14 +8,18 @@ const articles = defineCollection({
     publishDate: z.coerce.date().optional(),
     draft: z.boolean().optional().default(false),
     
-    // Images: Keystatic saves these as strings
+    // Images
     featuredImage: z.string().optional(),
     coverImage: z.string().optional(), 
     
-    metaDescription: z.string().optional(),
-    subtitle: z.string().optional(),
+    // New Schema Fields
+    subtitle: z.string().optional(), // The blurb
+    seoKeywords: z.string().optional(), // For <meta name="keywords">
     
-    // Keystatic might save keywords as a comma-separated string or an array
+    // Legacy fallback
+    metaDescription: z.string().optional(),
+    
+    // Tags can be array (new way) or string (old way)
     tags: z.union([z.array(z.string()), z.string()]).optional(),
     keywords: z.string().optional(),
   }),
