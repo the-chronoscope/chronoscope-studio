@@ -8,11 +8,12 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        // 1. Client ID: Uses PUBLIC_ prefix so the Browser can see it.
+        // 1. Client ID: Must use PUBLIC_ prefix so the browser sees it.
         clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
         
-        // 2. Client Secret: Uses private variable. Only visible on the Server.
-        clientSecret: import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET,
+        // 2. Client Secret: WE DO NOT INCLUDE IT HERE.
+        // The Keystatic backend will automatically find 'KEYSTATIC_GITHUB_CLIENT_SECRET' 
+        // in the server environment. This prevents Astro from stripping it.
       }
     : {
         kind: 'local',
