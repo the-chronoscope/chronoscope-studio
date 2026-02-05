@@ -8,8 +8,6 @@ export default config({
           owner: 'the-chronoscope',
           name: 'chronoscope-studio',
         },
-        clientId: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_ID,
-        clientSecret: import.meta.env.PUBLIC_KEYSTATIC_GITHUB_CLIENT_SECRET,
       }
     : {
         kind: 'local',
