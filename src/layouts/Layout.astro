@@ -1,0 +1,34 @@
+---
+import { SEO } from "astro-seo";
+
+const { title, description, image, frontmatter } = Astro.props;
+
+const pageTitle = title || "The Chronoscope | Observatory";
+const pageDesc = description || "A digital observatory exploring the deep past and the far future. Archaeology of collapse and engineering of reality.";
+const pageImage = image || "https://chronoscope-studio.vercel.app/images/default-social-card.jpg"; // You need to create this image!
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <SEO
+      title={pageTitle}
+      description={pageDesc}
+      openGraph={{
+        basic: {
+          title: pageTitle,
+          type: "website",
+          image: pageImage,
+        }
+      }}
+      twitter={{
+        creator: "@YourHandle",
+        card: "summary_large_image",
+      }}
+    />
+    </head>
+<body>
+    <slot /> </body>
+</html>
