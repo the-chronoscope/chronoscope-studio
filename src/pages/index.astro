@@ -49,52 +49,32 @@ function getYouTubeId(url) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Chronoscope | Origins & Futures</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --c-void: #050505;
-            --c-text: #e5e7eb;
-            --c-cyan: #22d3ee;
-            --c-cyan-glow: rgba(34, 211, 238, 0.3);
-            --c-amber: #f59e0b;
+            --c-void: #050505; --c-text: #e5e7eb; --c-cyan: #22d3ee;
+            --c-cyan-glow: rgba(34, 211, 238, 0.3); --c-amber: #f59e0b;
             --c-amber-glow: rgba(245, 158, 11, 0.3);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        html {
-            scroll-behavior: smooth;
-            scroll-padding-top: 80px;
-        }
-
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
         body {
-            background: var(--c-void);
-            color: var(--c-text);
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-            min-height: 100vh;
-            transition: background-color 0.5s ease;
+            background: var(--c-void); color: var(--c-text);
+            font-family: 'Inter', sans-serif; overflow-x: hidden;
+            min-height: 100vh; transition: background-color 0.5s ease;
         }
         
-        /* --- BACKGROUND LAYERS --- */
-        #starfield {
-            position: fixed; inset: 0; z-index: 0; 
-            opacity: 0; transition: opacity 1s; pointer-events: none;
-        }
+        /* LAYERS */
+        #starfield { position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity 1s; pointer-events: none; }
         .grid-bg {
             position: fixed; inset: 0; pointer-events: none; z-index: 0;
-            background-image: 
-                linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0; transition: opacity 0.7s;
+            background-image: linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0; transition: opacity 0.7s;
         }
         .future-mode .grid-bg { opacity: 0.15; }
-
         .paper-overlay {
             position: fixed; inset: 0; pointer-events: none; z-index: 1;
             background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
@@ -103,10 +83,8 @@ function getYouTubeId(url) {
         .scanline-overlay {
             position: fixed; inset: 0; pointer-events: none; z-index: 1;
             background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 50%);
-            background-size: 100% 4px;
-            opacity: 0; transition: opacity 0.7s;
+            background-size: 100% 4px; opacity: 0; transition: opacity 0.7s;
         }
-        
         .past-mode { 
             background-color: #0c0a09; 
             background-image: radial-gradient(#2a221b 1px, transparent 1px);
@@ -115,58 +93,42 @@ function getYouTubeId(url) {
         .past-mode .paper-overlay { opacity: 0.4; }
         .future-mode .scanline-overlay { opacity: 0.3; }
 
-        /* --- MAIN CONTENT (Layer 10) --- */
+        /* CONTENT & NAV */
         main { position: relative; z-index: 10; }
-
-        /* --- NAV (Layer 100) --- */
         nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
             background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        
         .nav-content {
-            display: flex; align-items: center; 
-            height: 64px; padding: 0 2rem; gap: 2rem;
-            max-width: 1600px; margin: 0 auto;
-            justify-content: flex-start;
-            position: relative;
+            display: flex; align-items: center; height: 64px; padding: 0 2rem; gap: 2rem;
+            max-width: 1600px; margin: 0 auto; justify-content: flex-start; position: relative;
         }
-        
         .logo-section { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; flex-shrink: 0; }
         .logo-icon { width: 32px; height: 32px; transition: transform 0.7s; }
         .future-mode .logo-icon { transform: rotate(0deg); }
         .past-mode .logo-icon { transform: rotate(180deg); }
-        
         .logo-text h1 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.1em; margin: 0; line-height: 1; }
         .future-mode .logo-text h1 { font-family: 'Orbitron', sans-serif; }
         .past-mode .logo-text h1 { font-family: 'Cinzel', serif; }
-
         .logo-subtitle { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; margin: 0; opacity: 0.8; }
         .future-mode .logo-subtitle { color: var(--c-cyan); }
         .past-mode .logo-subtitle { color: var(--c-amber); }
 
         .mode-toggle {
             position: relative; display: flex; align-items: center; justify-content: space-between;
-            height: 28px; width: 140px; border-radius: 99px;
-            background: #000; border: 1px solid #333;
-            cursor: pointer; overflow: hidden; transition: all 0.3s;
-            padding: 2px;
-            flex-shrink: 0;
+            height: 28px; width: 140px; border-radius: 99px; background: #000; border: 1px solid #333;
+            cursor: pointer; overflow: hidden; transition: all 0.3s; padding: 2px; flex-shrink: 0;
         }
         .mode-toggle:hover { border-color: #555; }
         .future-mode .mode-toggle { border-color: var(--c-cyan); }
         .past-mode .mode-toggle { border-color: var(--c-amber); }
-        
         .toggle-thumb {
-            width: 50%; height: 100%; border-radius: 99px;
-            background: #333; position: absolute; top: 0; left: 0;
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s;
-            z-index: 1; opacity: 0.2;
+            width: 50%; height: 100%; border-radius: 99px; background: #333; position: absolute; top: 0; left: 0;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; z-index: 1; opacity: 0.2;
         }
         .future-mode .toggle-thumb { transform: translateX(100%); background: var(--c-cyan); }
         .past-mode .toggle-thumb { transform: translateX(0%); background: var(--c-amber); }
-
         .toggle-labels {
             display: flex; width: 100%; justify-content: space-between; padding: 0 16px;
             font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
@@ -186,31 +148,16 @@ function getYouTubeId(url) {
         .nav-link:hover { color: #fff; }
 
         .search-wrapper { margin-left: auto; position: relative; display: flex; align-items: center; }
-        .search-btn {
-            background: none; border: none; color: #888; cursor: pointer; padding: 0.5rem;
-            transition: color 0.3s; display: flex; align-items: center;
-        }
+        .search-btn { background: none; border: none; color: #888; cursor: pointer; padding: 0.5rem; transition: color 0.3s; display: flex; align-items: center; }
         .search-btn:hover { color: #fff; }
         .search-icon { width: 18px; height: 18px; fill: currentColor; }
-        
         .search-bar-container {
-            position: absolute; right: 0; top: 120%;
-            background: rgba(10,10,10,0.95);
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 12px;
-            width: 280px;
-            display: none;
-            backdrop-filter: blur(10px);
-            z-index: 101;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            position: absolute; right: 0; top: 120%; background: rgba(10,10,10,0.95);
+            border: 1px solid #333; border-radius: 4px; padding: 12px; width: 280px;
+            display: none; backdrop-filter: blur(10px); z-index: 101; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         .search-bar-container.active { display: block; }
-
-        .search-input {
-            width: 100%; background: transparent; border: none; border-bottom: 1px solid #444;
-            color: #fff; padding: 8px 4px; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none;
-        }
+        .search-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #444; color: #fff; padding: 8px 4px; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
         .future-mode .search-input:focus { border-color: var(--c-cyan); }
         .past-mode .search-input:focus { border-color: var(--c-amber); }
 
@@ -223,104 +170,55 @@ function getYouTubeId(url) {
             .hero-title { font-size: 2.5rem; }
         }
 
-        .hero {
-            min-height: 40vh; 
-            display: flex; align-items: center; justify-content: center;
-            text-align: center; position: relative; 
-            padding-top: 80px; padding-bottom: 2rem; z-index: 10;
-        }
+        .hero { min-height: 40vh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; padding-top: 80px; padding-bottom: 2rem; z-index: 10; }
         .hero-title {
             font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 900; line-height: 0.9; margin-bottom: 1rem;
-            background-clip: text; -webkit-background-clip: text; color: transparent; transition: all 1s;
-            color: #e5e7eb; 
+            background-clip: text; -webkit-background-clip: text; color: transparent; transition: all 1s; color: #e5e7eb;
         }
-        .future-mode .hero-title {
-            font-family: 'Orbitron', sans-serif; background-image: linear-gradient(to bottom, #fff, #888);
-            text-shadow: 0 0 40px var(--c-cyan-glow);
-        }
-        .past-mode .hero-title {
-            font-family: 'Cinzel', serif; background-image: linear-gradient(to bottom, #fff, #ccc);
-            text-shadow: 0 0 40px var(--c-amber-glow);
-        }
-        .hero-tag {
-            font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.7;
-        }
+        .future-mode .hero-title { font-family: 'Orbitron', sans-serif; background-image: linear-gradient(to bottom, #fff, #888); text-shadow: 0 0 40px var(--c-cyan-glow); }
+        .past-mode .hero-title { font-family: 'Cinzel', serif; background-image: linear-gradient(to bottom, #fff, #ccc); text-shadow: 0 0 40px var(--c-amber-glow); }
+        .hero-tag { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.7; }
 
-        /* --- CARDS TWEAKED FOR HEIGHT --- */
         .container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 10; }
         .grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-        
         .card {
-            background: rgba(10, 10, 10, 0.6); border: 1px solid #222; border-radius: 4px;
-            backdrop-filter: blur(10px);
+            background: rgba(10, 10, 10, 0.6); border: 1px solid #222; border-radius: 4px; backdrop-filter: blur(10px);
             overflow: hidden; transition: all 0.4s; position: relative; display: flex; flex-direction: column;
-            text-decoration: none; color: inherit; 
-            /* FIXED: Ensure cards stretch to full height */
-            height: 100%;
+            text-decoration: none; color: inherit; height: 100%;
         }
         .card:hover { transform: translateY(-4px); background: rgba(20, 20, 20, 0.8); }
         .future-mode .card:hover { border-color: var(--c-cyan); box-shadow: 0 10px 30px -10px var(--c-cyan-glow); }
         .past-mode .card:hover { border-color: var(--c-amber); box-shadow: 0 10px 30px -10px var(--c-amber-glow); }
-
         .card-image-wrapper { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #111; }
-        .card-image { 
-            width: 100%; height: 100%; object-fit: cover; 
-            filter: grayscale(40%) contrast(1.1); transition: filter 0.4s; 
-        }
+        .card-image { width: 100%; height: 100%; object-fit: cover; filter: grayscale(40%) contrast(1.1); transition: filter 0.4s; }
         .card:hover .card-image { filter: grayscale(0%) contrast(1); }
-
-        .card-content { 
-            padding: 1.5rem; /* Increased padding slightly */
-            flex: 1; display: flex; flex-direction: column; 
-        }
+        .card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
         .card-title { font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff; line-height: 1.3; }
         .future-mode .card-title { font-family: 'Orbitron', sans-serif; letter-spacing: 0.02em; }
         .past-mode .card-title { font-family: 'Cinzel', serif; font-weight: 700; }
-
         .tag {
-            font-size: 0.6rem; padding: 2px 6px; border: 1px solid #333;
-            border-radius: 2px; text-transform: uppercase; margin-right: 6px; display: inline-block;
-            letter-spacing: 0.05em; color: #888; margin-bottom: 0.75rem;
+            font-size: 0.6rem; padding: 2px 6px; border: 1px solid #333; border-radius: 2px;
+            text-transform: uppercase; margin-right: 6px; display: inline-block; letter-spacing: 0.05em; color: #888; margin-bottom: 0.75rem;
         }
-        
-        /* CARD HEIGHT ADJUSTMENT */
         .card-desc {
-            color:#888; 
-            font-size: 0.85rem; 
-            line-height: 1.6; 
-            /* INCREASED from 3 to 5 lines */
-            display: -webkit-box; 
-            -webkit-line-clamp: 5; 
-            -webkit-box-orient: vertical; 
-            overflow: hidden;
-            /* Ensures minimum visual height */
-            min-height: 4.5rem; 
+            color:#888; font-size: 0.85rem; line-height: 1.6;
+            display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+            min-height: 4.5rem;
         }
-        
-        .section-header { 
-            padding: 0 0 1.5rem; border-top: 1px solid #222; margin-top: 1rem;
-            display: flex; align-items: baseline; gap: 1rem; 
-        }
+        .section-header { padding: 0 0 1.5rem; border-top: 1px solid #222; margin-top: 1rem; display: flex; align-items: baseline; gap: 1rem; }
         .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #fff; }
         .past-mode .section-title { font-family: 'Cinzel', serif; }
         .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; }
     </style>
 </head>
-
 <body class="future-mode">
     <script is:inline>
-        // Check URL params first (for About page links), then localStorage
         const urlParams = new URLSearchParams(window.location.search);
         const urlMode = urlParams.get('mode');
         const saved = urlMode || localStorage.getItem('chrono_mode') || 'future';
-        
         document.body.classList.remove('future-mode', 'past-mode');
         document.body.classList.add(saved + '-mode');
-        
-        // If we used the URL, update localStorage for persistence
-        if (urlMode) {
-            localStorage.setItem('chrono_mode', urlMode);
-        }
+        if (urlMode) localStorage.setItem('chrono_mode', urlMode);
     </script>
 
     <canvas id="starfield"></canvas>
@@ -388,7 +286,6 @@ function getYouTubeId(url) {
                 <h2 class="section-title">The Archive</h2>
                 <span class="section-subtitle">// Written Records</span>
             </div>
-            
             <div class="grid" id="articles-grid">
                 {articles.length > 0 ? articles.map(item => (
                     <a href={`/articles/${item.slug}`} class="card searchable-item" 
@@ -405,9 +302,7 @@ function getYouTubeId(url) {
                             <div style="margin-bottom: 0.5rem;">
                                 {item.data.tags.slice(0, 3).map(t => <span class="tag">{t}</span>)}
                             </div>
-                            <p class="card-desc">
-                                {item.data.description}
-                            </p>
+                            <p class="card-desc">{item.data.description}</p>
                         </div>
                     </a>
                 )) : (
@@ -463,8 +358,6 @@ function getYouTubeId(url) {
         const searchContainer = document.getElementById('search-container');
         const searchInput = document.getElementById('site-search');
         
-        // Mode setting logic already handled by inline script for init,
-        // but we need to run visual updates now that DOM is loaded.
         const currentMode = body.classList.contains('future-mode') ? 'future' : 'past';
         updateVisuals(currentMode);
 
@@ -473,8 +366,6 @@ function getYouTubeId(url) {
             body.classList.add(`${mode}-mode`);
             localStorage.setItem('chrono_mode', mode);
             updateVisuals(mode);
-            
-            // Clean URL if it has params (optional cleanliness)
             const url = new URL(window.location);
             if (url.searchParams.has('mode')) {
                 url.searchParams.delete('mode');
@@ -493,15 +384,12 @@ function getYouTubeId(url) {
             const currentMode = body.classList.contains('future-mode') ? 'future' : 'past';
             const query = searchInput ? searchInput.value.toLowerCase() : '';
             const items = document.querySelectorAll('.searchable-item');
-
             items.forEach(el => {
                 const itemMode = el.getAttribute('data-mode');
                 const title = el.getAttribute('data-title') || '';
                 const desc = el.getAttribute('data-desc') || '';
-                
                 const modeMatch = (!itemMode || itemMode.toLowerCase() === currentMode);
                 const searchMatch = (title.includes(query) || desc.includes(query));
-
                 if (modeMatch && searchMatch) {
                     el.style.display = 'flex';
                 } else {
@@ -517,31 +405,22 @@ function getYouTubeId(url) {
             });
         });
 
-        // Search Interaction
         if(searchTrigger && searchContainer) {
             searchTrigger.addEventListener('click', (e) => {
                 e.stopPropagation(); 
                 const isActive = searchContainer.classList.contains('active');
-                if(isActive) {
-                    searchContainer.classList.remove('active');
-                } else {
-                    searchContainer.classList.add('active');
-                    if(searchInput) searchInput.focus();
-                }
+                if(isActive) { searchContainer.classList.remove('active'); } 
+                else { searchContainer.classList.add('active'); if(searchInput) searchInput.focus(); }
             });
         }
 
         document.addEventListener('click', (e) => {
-            if (searchContainer && searchTrigger && 
-                !searchContainer.contains(e.target) && 
-                !searchTrigger.contains(e.target)) {
+            if (searchContainer && searchTrigger && !searchContainer.contains(e.target) && !searchTrigger.contains(e.target)) {
                 searchContainer.classList.remove('active');
             }
         });
 
-        if(searchInput) {
-            searchInput.addEventListener('input', () => filterContent());
-        }
+        if(searchInput) { searchInput.addEventListener('input', () => filterContent()); }
 
         const ctx = canvas.getContext('2d');
         let width, height;
@@ -551,13 +430,25 @@ function getYouTubeId(url) {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
             stars = Array.from({length: 120}, () => ({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                size: Math.random() * 1.5,
-                speed: Math.random() * 0.15 + 0.05,
-                alpha: Math.random()
+                x: Math.random() * width, y: Math.random() * height,
+                size: Math.random() * 1.5, speed: Math.random() * 0.15 + 0.05, alpha: Math.random()
             }));
         }
 
         function animate() {
-            if(
+            if(body.classList.contains('past-mode')) { requestAnimationFrame(animate); return; }
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(s => {
+                ctx.fillStyle = `rgba(34, 211, 238, ${s.alpha})`; 
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+                s.y -= s.speed; if(s.y < 0) s.y = height;
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', initStars);
+        initStars();
+        animate();
+    </script>
+</body>
+</html>
