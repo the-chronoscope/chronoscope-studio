@@ -5,7 +5,7 @@ import { getCollection } from 'astro:content';
 const allArticles = await getCollection('articles').catch(() => []);
 const allVideos = await getCollection('videos').catch(() => []);
 
-// Process Data
+// 1. Process Articles
 const articles = allArticles
   .filter(article => article.data.draft !== true)
   .map(article => ({
@@ -25,6 +25,7 @@ const articles = allArticles
   }))
   .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
 
+// 2. Process Videos
 const videos = allVideos
   .map(video => ({
     ...video,
@@ -36,9 +37,17 @@ const videos = allVideos
   }))
   .sort((a, b) => new Date(b.data.publishDate || 0).getTime() - new Date(a.data.publishDate || 0).getTime());
 
-// SLICE FOR HOMEPAGE (Max 4)
-const recentArticles = articles.slice(0, 4);
-const recentVideos = videos.slice(0, 4);
+// 3. INTELLIGENT SLICING (Fix for "Only showing 2 videos")
+// Instead of taking the top 4 total, we take the top 4 of EACH mode, then combine them.
+const recentArticles = [
+    ...articles.filter(i => i.data.mode === 'future').slice(0, 4),
+    ...articles.filter(i => i.data.mode === 'past').slice(0, 4)
+];
+
+const recentVideos = [
+    ...videos.filter(i => i.data.mode === 'future').slice(0, 4),
+    ...videos.filter(i => i.data.mode === 'past').slice(0, 4)
+];
 
 function getYouTubeId(url) {
   if (!url) return null;
@@ -71,6 +80,7 @@ function getYouTubeId(url) {
             font-family: 'Inter', sans-serif; overflow-x: hidden;
             min-height: 100vh; transition: background-color 0.5s ease;
         }
+        
         /* LAYERS */
         #starfield { position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity 1s; pointer-events: none; }
         .grid-bg {
@@ -163,12 +173,7 @@ function getYouTubeId(url) {
         .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; }
 
         /* SEE MORE BUTTON */
-        .see-more-btn {
-            display: block; width: fit-content; margin: 3rem auto 1rem;
-            padding: 1rem 3rem; background: rgba(255,255,255,0.03); border: 1px solid #333;
-            color: #fff; text-decoration: none; text-transform: uppercase; letter-spacing: 0.2em;
-            font-size: 0.8rem; font-family: 'Inter', sans-serif; transition: all 0.3s;
-        }
+        .see-more-btn { display: block; width: fit-content; margin: 3rem auto 1rem; padding: 1rem 3rem; background: rgba(255,255,255,0.03); border: 1px solid #333; color: #fff; text-decoration: none; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; font-family: 'Inter', sans-serif; transition: all 0.3s; }
         .see-more-btn:hover { background: rgba(255,255,255,0.1); }
         .future-mode .see-more-btn:hover { border-color: var(--c-cyan); box-shadow: 0 0 20px var(--c-cyan-glow); }
         .past-mode .see-more-btn:hover { border-color: var(--c-amber); box-shadow: 0 0 20px var(--c-amber-glow); }
@@ -189,7 +194,7 @@ function getYouTubeId(url) {
     <div class="scanline-overlay"></div>
     <nav>
         <div class="nav-content">
-            <div class="logo-section" id="mode-trigger">
+            <a href="/" class="logo-section" id="mode-trigger">
                 <div class="logo-icon">
                     <svg viewBox="0 0 100 100">
                         <defs><linearGradient id="g-fut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#0e7490"/></linearGradient><linearGradient id="g-pst" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
@@ -198,9 +203,10 @@ function getYouTubeId(url) {
                     </svg>
                 </div>
                 <div class="logo-text"><h1>CHRONOSCOPE</h1><p class="logo-subtitle" id="logo-subtitle">Observatory</p></div>
-            </div>
+            </a>
             <div class="mode-toggle" id="mode-toggle-btn"><div class="toggle-thumb"></div><div class="toggle-labels"><span>Past</span><span>Future</span></div></div>
             <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
                 <a href="/articles" class="nav-link">Archive</a>
                 <a href="/videos" class="nav-link">Transmissions</a>
                 <a href="/about" class="nav-link">About</a>
