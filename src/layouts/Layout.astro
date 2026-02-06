@@ -1,11 +1,18 @@
 ---
+// src/layouts/Layout.astro
 import { SEO } from "astro-seo";
 
-const { title, description, image, frontmatter } = Astro.props;
+// Props allow individual pages to override these defaults
+const { 
+  title = "The Chronoscope | Origins & Futures",
+  description = "A digital observatory exploring the archaeology of the past and the engineering of the future.",
+  image = "/images/og-default.jpg", // You'll need to upload a default image later
+  articleDate,
+} = Astro.props;
 
-const pageTitle = title || "The Chronoscope | Observatory";
-const pageDesc = description || "A digital observatory exploring the deep past and the far future. Archaeology of collapse and engineering of reality.";
-const pageImage = image || "https://chronoscope-studio.vercel.app/images/default-social-card.jpg"; // You need to create this image!
+// Detect current mode for body class
+// Note: We read this from props or default to 'future' to prevent flashing
+const initialMode = 'future'; 
 ---
 
 <!DOCTYPE html>
@@ -13,22 +20,79 @@ const pageImage = image || "https://chronoscope-studio.vercel.app/images/default
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
     <SEO
-      title={pageTitle}
-      description={pageDesc}
+      title={title}
+      description={description}
       openGraph={{
         basic: {
-          title: pageTitle,
-          type: "website",
-          image: pageImage,
+          title: title,
+          type: articleDate ? "article" : "website",
+          image: image,
+        },
+        optional: {
+            description: description,
         }
       }}
       twitter={{
-        creator: "@YourHandle",
         card: "summary_large_image",
+        creator: "@TheChronoscope", // Replace with your handle
+      }}
+      extend={{
+        meta: [
+          { name: "twitter:image", content: image },
+          { name: "twitter:title", content: title },
+          { name: "twitter:description", content: description },
+        ],
       }}
     />
-    </head>
+    
+    <style is:global>
+        :root {
+            --c-void: #050505; --c-text: #e5e7eb; --c-cyan: #22d3ee;
+            --c-cyan-glow: rgba(34, 211, 238, 0.3); --c-amber: #f59e0b;
+            --c-amber-glow: rgba(245, 158, 11, 0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body {
+            background: var(--c-void); color: var(--c-text);
+            font-family: 'Inter', sans-serif; overflow-x: hidden;
+            min-height: 100vh; transition: background-color 0.5s ease;
+        }
+        
+        /* LAYERS */
+        #starfield { position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity 1s; pointer-events: none; }
+        .grid-bg {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image: linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0; transition: opacity 0.7s;
+        }
+        .future-mode .grid-bg { opacity: 0.15; }
+        .paper-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
+            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+            opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s;
+        }
+        .scanline-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 50%);
+            background-size: 100% 4px; opacity: 0; transition: opacity 0.7s;
+        }
+        .past-mode { background-color: #0c0a09; background-image: radial-gradient(#2a221b 1px, transparent 1px); background-size: 20px 20px; } 
+        .past-mode .paper-overlay { opacity: 0.4; }
+        .future-mode .scanline-overlay { opacity: 0.3; }
+
+        /* NAV & UI UTILITIES */
+        /* Note: Specific Nav styles remain in components or pages, 
+           but global utilities go here */
+    </style>
+</head>
 <body>
     <slot /> </body>
 </html>
