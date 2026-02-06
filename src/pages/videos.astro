@@ -1,0 +1,234 @@
+---
+// src/pages/videos.astro
+import { getCollection } from 'astro:content';
+
+const allVideos = await getCollection('videos').catch(() => []);
+
+const videos = allVideos
+  .map(video => ({
+    ...video,
+    data: {
+      ...video.data,
+      youtubeId: getYouTubeId(video.data.youtubeUrl),
+      mode: video.data.mode || 'future'
+    }
+  }))
+  .sort((a, b) => new Date(b.data.publishDate || 0).getTime() - new Date(a.data.publishDate || 0).getTime());
+
+function getYouTubeId(url) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transmissions | The Chronoscope</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Shared Styles */
+        :root { --c-void: #050505; --c-text: #e5e7eb; --c-cyan: #22d3ee; --c-cyan-glow: rgba(34, 211, 238, 0.3); --c-amber: #f59e0b; --c-amber-glow: rgba(245, 158, 11, 0.3); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body { background: var(--c-void); color: var(--c-text); font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh; transition: background-color 0.5s ease; }
+        
+        #starfield { position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity 1s; pointer-events: none; }
+        .grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px); background-size: 50px 50px; opacity: 0; transition: opacity 0.7s; }
+        .future-mode .grid-bg { opacity: 0.15; }
+        .paper-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 1; background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png'); opacity: 0; mix-blend-mode: overlay; transition: opacity 0.7s; }
+        .scanline-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 1; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 50%); background-size: 100% 4px; opacity: 0; transition: opacity 0.7s; }
+        .past-mode { background-color: #0c0a09; background-image: radial-gradient(#2a221b 1px, transparent 1px); background-size: 20px 20px; } 
+        .past-mode .paper-overlay { opacity: 0.4; } .future-mode .scanline-overlay { opacity: 0.3; }
+
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .nav-content { display: flex; align-items: center; height: 64px; padding: 0 2rem; gap: 2rem; max-width: 1600px; margin: 0 auto; justify-content: flex-start; position: relative; }
+        .logo-section { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; flex-shrink: 0; }
+        .logo-icon { width: 32px; height: 32px; transition: transform 0.7s; }
+        .future-mode .logo-icon { transform: rotate(0deg); } .past-mode .logo-icon { transform: rotate(180deg); }
+        .logo-text h1 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.1em; margin: 0; line-height: 1; }
+        .future-mode .logo-text h1 { font-family: 'Orbitron', sans-serif; } .past-mode .logo-text h1 { font-family: 'Cinzel', serif; }
+        .logo-subtitle { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; margin: 0; opacity: 0.8; }
+        .future-mode .logo-subtitle { color: var(--c-cyan); } .past-mode .logo-subtitle { color: var(--c-amber); }
+
+        .mode-toggle { position: relative; display: flex; align-items: center; justify-content: space-between; height: 28px; width: 140px; border-radius: 99px; background: #000; border: 1px solid #333; cursor: pointer; overflow: hidden; transition: all 0.3s; padding: 2px; flex-shrink: 0; }
+        .mode-toggle:hover { border-color: #555; }
+        .future-mode .mode-toggle { border-color: var(--c-cyan); } .past-mode .mode-toggle { border-color: var(--c-amber); }
+        .toggle-thumb { width: 50%; height: 100%; border-radius: 99px; background: #333; position: absolute; top: 0; left: 0; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; z-index: 1; opacity: 0.2; }
+        .future-mode .toggle-thumb { transform: translateX(100%); background: var(--c-cyan); } .past-mode .toggle-thumb { transform: translateX(0%); background: var(--c-amber); }
+        .toggle-labels { display: flex; width: 100%; justify-content: space-between; padding: 0 16px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; z-index: 2; pointer-events: none; position: absolute; }
+        .toggle-labels span { transition: color 0.3s; }
+        .future-mode .toggle-labels span:last-child { color: var(--c-cyan); text-shadow: 0 0 5px var(--c-cyan-glow); } .future-mode .toggle-labels span:first-child { color: #444; }
+        .past-mode .toggle-labels span:first-child { color: var(--c-amber); text-shadow: 0 0 5px var(--c-amber-glow); } .past-mode .toggle-labels span:last-child { color: #444; }
+
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; margin-left: 1rem; }
+        .nav-link { color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; transition: color 0.3s; }
+        .nav-link:hover { color: #fff; }
+
+        .search-wrapper { margin-left: auto; position: relative; display: flex; align-items: center; }
+        .search-btn { background: none; border: none; color: #888; cursor: pointer; padding: 0.5rem; transition: color 0.3s; display: flex; align-items: center; }
+        .search-btn:hover { color: #fff; }
+        .search-icon { width: 18px; height: 18px; fill: currentColor; }
+        .search-bar-container { position: absolute; right: 0; top: 120%; background: rgba(10,10,10,0.95); border: 1px solid #333; border-radius: 4px; padding: 12px; width: 280px; display: none; backdrop-filter: blur(10px); z-index: 101; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .search-bar-container.active { display: block; }
+        .search-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #444; color: #fff; padding: 8px 4px; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
+        .future-mode .search-input:focus { border-color: var(--c-cyan); } .past-mode .search-input:focus { border-color: var(--c-amber); }
+
+        @media (max-width: 768px) {
+            .nav-content { padding: 0 1rem; gap: 1rem; } .logo-text { display: none; } .nav-links { gap: 1rem; margin-left: 0; }
+            .mode-toggle { width: 100px; } .toggle-labels { font-size: 0.55rem; padding: 0 8px; }
+        }
+
+        /* PAGE SPECIFIC */
+        main { position: relative; z-index: 10; padding-top: 120px; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 10; }
+        .grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+        
+        .card { background: rgba(10, 10, 10, 0.6); border: 1px solid #222; border-radius: 4px; backdrop-filter: blur(10px); overflow: hidden; transition: all 0.4s; position: relative; display: flex; flex-direction: column; text-decoration: none; color: inherit; height: 100%; }
+        .card:hover { transform: translateY(-4px); background: rgba(20, 20, 20, 0.8); }
+        .future-mode .card:hover { border-color: var(--c-cyan); box-shadow: 0 10px 30px -10px var(--c-cyan-glow); }
+        .past-mode .card:hover { border-color: var(--c-amber); box-shadow: 0 10px 30px -10px var(--c-amber-glow); }
+        .card-image-wrapper { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #111; }
+        .card-image { width: 100%; height: 100%; object-fit: cover; filter: grayscale(40%) contrast(1.1); transition: filter 0.4s; }
+        .card:hover .card-image { filter: grayscale(0%) contrast(1); }
+        .card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff; line-height: 1.3; }
+        .future-mode .card-title { font-family: 'Orbitron', sans-serif; letter-spacing: 0.02em; }
+        .past-mode .card-title { font-family: 'Cinzel', serif; font-weight: 700; }
+        .card-desc { color:#888; font-size: 0.85rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; min-height: 4.5rem; }
+        
+        .section-header { padding: 0 0 1.5rem; border-top: 1px solid #222; margin-bottom: 2rem; display: flex; align-items: baseline; gap: 1rem; }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #fff; }
+        .past-mode .section-title { font-family: 'Cinzel', serif; }
+        .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; }
+    </style>
+</head>
+<body class="future-mode">
+    <script is:inline>
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlMode = urlParams.get('mode');
+        const saved = urlMode || localStorage.getItem('chrono_mode') || 'future';
+        document.body.classList.remove('future-mode', 'past-mode');
+        document.body.classList.add(saved + '-mode');
+        if (urlMode) localStorage.setItem('chrono_mode', urlMode);
+    </script>
+    <canvas id="starfield"></canvas>
+    <div class="grid-bg"></div>
+    <div class="paper-overlay"></div>
+    <div class="scanline-overlay"></div>
+    <nav>
+        <div class="nav-content">
+            <a href="/" class="logo-section" id="mode-trigger">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 100 100">
+                        <defs><linearGradient id="g-fut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#0e7490"/></linearGradient><linearGradient id="g-pst" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
+                        <path d="M50 5 A 45 45 0 0 1 50 95 A 22.5 22.5 0 0 1 50 50 A 22.5 22.5 0 0 0 50 5" fill="url(#g-fut)" />
+                        <path d="M50 95 A 45 45 0 0 1 50 5 A 22.5 22.5 0 0 1 50 50 A 22.5 22.5 0 0 0 50 95" fill="url(#g-pst)" />
+                    </svg>
+                </div>
+                <div class="logo-text"><h1>CHRONOSCOPE</h1><p class="logo-subtitle" id="logo-subtitle">Observatory</p></div>
+            </a>
+            <div class="mode-toggle" id="mode-toggle-btn"><div class="toggle-thumb"></div><div class="toggle-labels"><span>Past</span><span>Future</span></div></div>
+            <div class="nav-links">
+                <a href="/articles" class="nav-link">Archive</a>
+                <a href="/videos" class="nav-link" style="color:#fff;">Transmissions</a>
+                <a href="/about" class="nav-link">About</a>
+                <a href="/keystatic" class="nav-link" style="color: var(--c-cyan);">Login</a>
+            </div>
+            <div class="search-wrapper">
+                <button class="search-btn" id="search-trigger"><svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+                <div class="search-bar-container" id="search-container"><input type="text" id="site-search" class="search-input" placeholder="Query Database..."></div>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <section class="container" id="videos">
+            <div class="section-header">
+                <h2 class="section-title">Full Transmissions</h2>
+                <span class="section-subtitle">// All Visual Feeds</span>
+            </div>
+            <div class="grid" id="videos-grid">
+                {videos.length > 0 ? videos.map(item => (
+                    <a href={item.data.youtubeUrl} target="_blank" class="card searchable-item" data-mode={item.data.mode} data-title={item.data.title.toLowerCase()} data-desc={item.data.description.toLowerCase()}>
+                        <div class="card-image-wrapper">
+                            {item.data.youtubeId ? <img src={`https://img.youtube.com/vi/${item.data.youtubeId}/maxresdefault.jpg`} class="card-image" loading="lazy" alt={item.data.title} /> : <div style="background: #222; height: 100%; display: flex; align-items: center; justify-content: center;">NO SIGNAL</div>}
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">{item.data.title}</h3>
+                            <p class="card-desc">{item.data.description}</p>
+                        </div>
+                    </a>
+                )) : (
+                    <div style="grid-column: 1/-1; padding: 4rem; border: 1px dashed #333; text-align: center; color: #666;">NO SIGNAL</div>
+                )}
+            </div>
+        </section>
+    </main>
+    <footer style="margin-top: 8rem; padding: 4rem 0; border-top: 1px solid #222; text-align: center; color: #444; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em;">EST. 2026 // The Chronoscope</footer>
+
+    <script>
+        const body = document.body;
+        const toggleBtn = document.getElementById('mode-toggle-btn');
+        const trigger = document.getElementById('mode-trigger');
+        const canvas = document.getElementById('starfield');
+        const searchTrigger = document.getElementById('search-trigger');
+        const searchContainer = document.getElementById('search-container');
+        const searchInput = document.getElementById('site-search');
+        
+        const currentMode = body.classList.contains('future-mode') ? 'future' : 'past';
+        updateVisuals(currentMode);
+
+        function setMode(mode) {
+            body.classList.remove('future-mode', 'past-mode'); body.classList.add(`${mode}-mode`);
+            localStorage.setItem('chrono_mode', mode); updateVisuals(mode);
+            const url = new URL(window.location);
+            if (url.searchParams.has('mode')) { url.searchParams.delete('mode'); window.history.replaceState({}, '', url); }
+        }
+
+        function updateVisuals(mode) {
+            if(canvas) canvas.style.opacity = mode === 'future' ? '1' : '0';
+            const sub = document.getElementById('logo-subtitle');
+            if(sub) sub.textContent = mode === 'future' ? 'Forward Operating Base' : 'The Ancient Archive';
+            filterContent();
+        }
+
+        function filterContent() {
+            const currentMode = body.classList.contains('future-mode') ? 'future' : 'past';
+            const query = searchInput ? searchInput.value.toLowerCase() : '';
+            const items = document.querySelectorAll('.searchable-item');
+            items.forEach(el => {
+                const itemMode = el.getAttribute('data-mode');
+                const title = el.getAttribute('data-title') || '';
+                const desc = el.getAttribute('data-desc') || '';
+                const modeMatch = (!itemMode || itemMode.toLowerCase() === currentMode);
+                const searchMatch = (title.includes(query) || desc.includes(query));
+                if (modeMatch && searchMatch) el.style.display = 'flex'; else el.style.display = 'none';
+            });
+        }
+
+        [toggleBtn, trigger].forEach(el => { if(el) el.addEventListener('click', () => { const newMode = body.classList.contains('future-mode') ? 'past' : 'future'; setMode(newMode); }); });
+        if(searchTrigger && searchContainer) {
+            searchTrigger.addEventListener('click', (e) => { e.stopPropagation(); const isActive = searchContainer.classList.contains('active'); if(isActive) { searchContainer.classList.remove('active'); } else { searchContainer.classList.add('active'); if(searchInput) searchInput.focus(); } });
+        }
+        document.addEventListener('click', (e) => { if (searchContainer && searchTrigger && !searchContainer.contains(e.target) && !searchTrigger.contains(e.target)) { searchContainer.classList.remove('active'); } });
+        if(searchInput) { searchInput.addEventListener('input', () => filterContent()); }
+
+        const ctx = canvas.getContext('2d');
+        let width, height, stars = [];
+        function initStars() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; stars = Array.from({length: 120}, () => ({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 1.5, speed: Math.random() * 0.15 + 0.05, alpha: Math.random() })); }
+        function animate() {
+            if(body.classList.contains('past-mode')) { requestAnimationFrame(animate); return; }
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(s => { ctx.fillStyle = `rgba(34, 211, 238, ${s.alpha})`; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill(); s.y -= s.speed; if(s.y < 0) s.y = height; });
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', initStars); initStars(); animate();
+    </script>
+</body>
+</html>
