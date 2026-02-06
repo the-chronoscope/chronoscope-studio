@@ -78,24 +78,41 @@ function getYouTubeId(url) {
         .nav-content { display: flex; align-items: center; height: 64px; padding: 0 2rem; gap: 2rem; max-width: 1600px; margin: 0 auto; justify-content: flex-start; position: relative; }
         .logo-section { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; flex-shrink: 0; }
         .logo-icon { width: 32px; height: 32px; transition: transform 0.7s; }
-        .future-mode .logo-icon { transform: rotate(0deg); } .past-mode .logo-icon { transform: rotate(180deg); }
         
-        /* SEO FIX: Changed h1 to div.logo-brand */
+        /* FIX: Added :global() to recognize body classes from Layout */
+        :global(.future-mode) .logo-icon { transform: rotate(0deg); } 
+        :global(.past-mode) .logo-icon { transform: rotate(180deg); }
+        
         .logo-brand { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.1em; margin: 0; line-height: 1; color: #fff; }
-        .future-mode .logo-brand { font-family: 'Orbitron', sans-serif; } .past-mode .logo-brand { font-family: 'Cinzel', serif; }
+        :global(.future-mode) .logo-brand { font-family: 'Orbitron', sans-serif; } 
+        :global(.past-mode) .logo-brand { font-family: 'Cinzel', serif; }
         
         .logo-subtitle { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; margin: 0; opacity: 0.8; }
-        .future-mode .logo-subtitle { color: var(--c-cyan); } .past-mode .logo-subtitle { color: var(--c-amber); }
+        :global(.future-mode) .logo-subtitle { color: var(--c-cyan); } 
+        :global(.past-mode) .logo-subtitle { color: var(--c-amber); }
 
+        /* TOGGLE FIX */
         .mode-toggle { position: relative; display: flex; align-items: center; justify-content: space-between; height: 28px; width: 140px; border-radius: 99px; background: #000; border: 1px solid #333; cursor: pointer; overflow: hidden; transition: all 0.3s; padding: 2px; flex-shrink: 0; }
         .mode-toggle:hover { border-color: #555; }
-        .future-mode .mode-toggle { border-color: var(--c-cyan); } .past-mode .mode-toggle { border-color: var(--c-amber); }
+        
+        /* FIX: Colors restore here */
+        :global(.future-mode) .mode-toggle { border-color: var(--c-cyan); } 
+        :global(.past-mode) .mode-toggle { border-color: var(--c-amber); }
+        
         .toggle-thumb { width: 50%; height: 100%; border-radius: 99px; background: #333; position: absolute; top: 0; left: 0; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; z-index: 1; opacity: 0.2; }
-        .future-mode .toggle-thumb { transform: translateX(100%); background: var(--c-cyan); } .past-mode .toggle-thumb { transform: translateX(0%); background: var(--c-amber); }
+        
+        /* FIX: Thumb sliding and color */
+        :global(.future-mode) .toggle-thumb { transform: translateX(100%); background: var(--c-cyan); } 
+        :global(.past-mode) .toggle-thumb { transform: translateX(0%); background: var(--c-amber); }
+        
         .toggle-labels { display: flex; width: 100%; justify-content: space-between; padding: 0 16px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; z-index: 2; pointer-events: none; position: absolute; }
         .toggle-labels span { transition: color 0.3s; }
-        .future-mode .toggle-labels span:last-child { color: var(--c-cyan); text-shadow: 0 0 5px var(--c-cyan-glow); } .future-mode .toggle-labels span:first-child { color: #444; }
-        .past-mode .toggle-labels span:first-child { color: var(--c-amber); text-shadow: 0 0 5px var(--c-amber-glow); } .past-mode .toggle-labels span:last-child { color: #444; }
+        
+        /* FIX: Text glow */
+        :global(.future-mode) .toggle-labels span:last-child { color: var(--c-cyan); text-shadow: 0 0 5px var(--c-cyan-glow); } 
+        :global(.future-mode) .toggle-labels span:first-child { color: #444; }
+        :global(.past-mode) .toggle-labels span:first-child { color: var(--c-amber); text-shadow: 0 0 5px var(--c-amber-glow); } 
+        :global(.past-mode) .toggle-labels span:last-child { color: #444; }
 
         .nav-links { display: flex; gap: 1.5rem; align-items: center; margin-left: 1rem; }
         .nav-link { color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; transition: color 0.3s; }
@@ -108,7 +125,9 @@ function getYouTubeId(url) {
         .search-bar-container { position: absolute; right: 0; top: 120%; background: rgba(10,10,10,0.95); border: 1px solid #333; border-radius: 4px; padding: 12px; width: 280px; display: none; backdrop-filter: blur(10px); z-index: 101; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .search-bar-container.active { display: block; }
         .search-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #444; color: #fff; padding: 8px 4px; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
-        .future-mode .search-input:focus { border-color: var(--c-cyan); } .past-mode .search-input:focus { border-color: var(--c-amber); }
+        
+        :global(.future-mode) .search-input:focus { border-color: var(--c-cyan); } 
+        :global(.past-mode) .search-input:focus { border-color: var(--c-amber); }
 
         @media (max-width: 768px) {
             .nav-content { padding: 0 1rem; gap: 1rem; } .logo-text { display: none; } .nav-links { gap: 1rem; margin-left: 0; }
@@ -119,8 +138,11 @@ function getYouTubeId(url) {
         main { position: relative; z-index: 10; }
         .hero { min-height: 40vh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; padding-top: 80px; padding-bottom: 2rem; z-index: 10; }
         .hero-title { font-size: clamp(2.5rem, 8vw, 6rem); font-weight: 900; line-height: 0.9; margin-bottom: 1rem; background-clip: text; -webkit-background-clip: text; color: transparent; transition: all 1s; color: #e5e7eb; }
-        .future-mode .hero-title { font-family: 'Orbitron', sans-serif; background-image: linear-gradient(to bottom, #fff, #888); text-shadow: 0 0 40px var(--c-cyan-glow); }
-        .past-mode .hero-title { font-family: 'Cinzel', serif; background-image: linear-gradient(to bottom, #fff, #ccc); text-shadow: 0 0 40px var(--c-amber-glow); }
+        
+        /* FIX: Hero Styles */
+        :global(.future-mode) .hero-title { font-family: 'Orbitron', sans-serif; background-image: linear-gradient(to bottom, #fff, #888); text-shadow: 0 0 40px var(--c-cyan-glow); }
+        :global(.past-mode) .hero-title { font-family: 'Cinzel', serif; background-image: linear-gradient(to bottom, #fff, #ccc); text-shadow: 0 0 40px var(--c-amber-glow); }
+        
         .hero-tag { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.7; }
 
         /* CARDS */
@@ -128,27 +150,38 @@ function getYouTubeId(url) {
         .grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
         .card { background: rgba(10, 10, 10, 0.6); border: 1px solid #222; border-radius: 4px; backdrop-filter: blur(10px); overflow: hidden; transition: all 0.4s; position: relative; display: flex; flex-direction: column; text-decoration: none; color: inherit; height: 100%; }
         .card:hover { transform: translateY(-4px); background: rgba(20, 20, 20, 0.8); }
-        .future-mode .card:hover { border-color: var(--c-cyan); box-shadow: 0 10px 30px -10px var(--c-cyan-glow); }
-        .past-mode .card:hover { border-color: var(--c-amber); box-shadow: 0 10px 30px -10px var(--c-amber-glow); }
+        
+        /* FIX: Card Hovers */
+        :global(.future-mode) .card:hover { border-color: var(--c-cyan); box-shadow: 0 10px 30px -10px var(--c-cyan-glow); }
+        :global(.past-mode) .card:hover { border-color: var(--c-amber); box-shadow: 0 10px 30px -10px var(--c-amber-glow); }
+        
         .card-image-wrapper { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #111; }
         .card-image { width: 100%; height: 100%; object-fit: cover; filter: grayscale(40%) contrast(1.1); transition: filter 0.4s; }
         .card:hover .card-image { filter: grayscale(0%) contrast(1); }
         .card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
         .card-title { font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff; line-height: 1.3; }
-        .future-mode .card-title { font-family: 'Orbitron', sans-serif; letter-spacing: 0.02em; }
-        .past-mode .card-title { font-family: 'Cinzel', serif; font-weight: 700; }
+        
+        /* FIX: Card Fonts */
+        :global(.future-mode) .card-title { font-family: 'Orbitron', sans-serif; letter-spacing: 0.02em; }
+        :global(.past-mode) .card-title { font-family: 'Cinzel', serif; font-weight: 700; }
+        
         .tag { font-size: 0.6rem; padding: 2px 6px; border: 1px solid #333; border-radius: 2px; text-transform: uppercase; margin-right: 6px; display: inline-block; letter-spacing: 0.05em; color: #888; margin-bottom: 0.75rem; }
         .card-desc { color:#888; font-size: 0.85rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; min-height: 4.5rem; }
         
         .section-header { padding: 0 0 1.5rem; border-top: 1px solid #222; margin-top: 1rem; display: flex; align-items: baseline; gap: 1rem; }
         .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #fff; }
-        .past-mode .section-title { font-family: 'Cinzel', serif; }
+        
+        /* FIX: Section Title Font */
+        :global(.past-mode) .section-title { font-family: 'Cinzel', serif; }
+        
         .section-subtitle { font-family: 'Inter', sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.75rem; }
 
         .see-more-btn { display: block; width: fit-content; margin: 3rem auto 1rem; padding: 1rem 3rem; background: rgba(255,255,255,0.03); border: 1px solid #333; color: #fff; text-decoration: none; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; font-family: 'Inter', sans-serif; transition: all 0.3s; }
         .see-more-btn:hover { background: rgba(255,255,255,0.1); }
-        .future-mode .see-more-btn:hover { border-color: var(--c-cyan); box-shadow: 0 0 20px var(--c-cyan-glow); }
-        .past-mode .see-more-btn:hover { border-color: var(--c-amber); box-shadow: 0 0 20px var(--c-amber-glow); }
+        
+        /* FIX: Button Glow */
+        :global(.future-mode) .see-more-btn:hover { border-color: var(--c-cyan); box-shadow: 0 0 20px var(--c-cyan-glow); }
+        :global(.past-mode) .see-more-btn:hover { border-color: var(--c-amber); box-shadow: 0 0 20px var(--c-amber-glow); }
     </style>
 
     <nav>
