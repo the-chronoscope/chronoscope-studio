@@ -1,5 +1,6 @@
 ---
 // src/layouts/Layout.astro
+import { Analytics } from '@vercel/analytics/react';
 import { SEO } from "astro-seo";
 
 // Props allow individual pages to override these defaults
@@ -103,5 +104,7 @@ const initialMode = 'future';
     </style>
 </head>
 <body>
-    <slot /> </body>
+    <slot /> <Analytics />
+</body>
+</html></body>
 </html>
