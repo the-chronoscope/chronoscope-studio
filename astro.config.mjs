@@ -4,6 +4,7 @@ import tailwind from '@astrojs/tailwind';
 import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
 import markdoc from '@astrojs/markdoc'; // Import the reader
+import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://chronoscope-studio.vercel.app',
@@ -13,7 +14,8 @@ export default defineConfig({
     react(),
     tailwind(),
     keystatic(),
-    markdoc() // Activate the reader
+    markdoc(),
+    sitemap()
   ],
   vite: {
     build: {
